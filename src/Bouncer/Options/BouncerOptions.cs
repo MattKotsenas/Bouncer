@@ -9,6 +9,9 @@ public sealed class BouncerOptions
     [JsonPropertyName("version")]
     public int Version { get; set; } = 1;
 
+    [JsonPropertyName("$schema")]
+    public string? Schema { get; set; }
+
     [JsonPropertyName("defaultAction")]
     public string DefaultAction { get; set; } = "allow";
 
