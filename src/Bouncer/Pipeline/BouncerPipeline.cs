@@ -1,5 +1,6 @@
 using System.Text.Json;
 using Bouncer.Llm;
+using Bouncer.Logging;
 using Bouncer.Models;
 using Bouncer.Options;
 using Bouncer.Rules;
@@ -11,15 +12,18 @@ public sealed class BouncerPipeline : IBouncerPipeline
 {
     private readonly IRuleEngine _ruleEngine;
     private readonly ILlmJudge _llmJudge;
+    private readonly IAuditLog _auditLog;
     private readonly BouncerOptions _options;
 
     public BouncerPipeline(
         IRuleEngine ruleEngine,
         ILlmJudge llmJudge,
+        IAuditLog auditLog,
         IOptions<BouncerOptions> options)
     {
         _ruleEngine = ruleEngine;
         _llmJudge = llmJudge;
+        _auditLog = auditLog;
         _options = options.Value;
     }
 
@@ -27,25 +31,33 @@ public sealed class BouncerPipeline : IBouncerPipeline
         HookInput input,
         CancellationToken cancellationToken = default)
     {
+        EvaluationResult result;
+
         var match = _ruleEngine.Evaluate(input);
         if (match is not null)
         {
-            return new EvaluationResult(match.Decision, EvaluationTier.Rules, match.Reason);
+            result = new EvaluationResult(match.Decision, EvaluationTier.Rules, match.Reason);
         }
-
-        if (_options.LlmFallback.Enabled)
+        else if (_options.LlmFallback.Enabled)
         {
             var llmDecision = await _llmJudge.EvaluateAsync(input, cancellationToken);
-            if (llmDecision is not null)
-            {
-                return new EvaluationResult(llmDecision.Decision, EvaluationTier.Llm, llmDecision.Reason);
-            }
+            result = llmDecision is null
+                ? new EvaluationResult(
+                    GetDefaultDecision(),
+                    EvaluationTier.DefaultAction,
+                    $"No rules matched; defaultAction: {_options.DefaultAction}")
+                : new EvaluationResult(llmDecision.Decision, EvaluationTier.Llm, llmDecision.Reason);
+        }
+        else
+        {
+            result = new EvaluationResult(
+                GetDefaultDecision(),
+                EvaluationTier.DefaultAction,
+                $"No rules matched; defaultAction: {_options.DefaultAction}");
         }
 
-        var decision = GetDefaultDecision();
-        var reason = $"No rules matched; defaultAction: {_options.DefaultAction}";
-
-        return new EvaluationResult(decision, EvaluationTier.DefaultAction, reason);
+        await MaybeLogAsync(input, result, cancellationToken);
+        return result;
     }
 
     public async Task<int> RunAsync(Stream input, Stream output, CancellationToken cancellationToken = default)
@@ -106,5 +118,33 @@ public sealed class BouncerPipeline : IBouncerPipeline
         await output.FlushAsync(cancellationToken);
 
         return decision == PermissionDecision.Deny ? 2 : 0;
+    }
+
+    private async Task MaybeLogAsync(
+        HookInput input,
+        EvaluationResult result,
+        CancellationToken cancellationToken)
+    {
+        if (!_options.Logging.Enabled)
+        {
+            return;
+        }
+
+        if (string.Equals(_options.Logging.Level, "denials-only", StringComparison.OrdinalIgnoreCase)
+            && result.Decision != PermissionDecision.Deny)
+        {
+            return;
+        }
+
+        var toolInputJson = JsonSerializer.Serialize(input.ToolInput, BouncerJsonContext.Default.ToolInput);
+        var entry = new AuditEntry(
+            DateTimeOffset.UtcNow,
+            input.ToolName,
+            toolInputJson,
+            result.Decision,
+            result.Tier,
+            result.Reason);
+
+        await _auditLog.WriteAsync(entry, cancellationToken);
     }
 }

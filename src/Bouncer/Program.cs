@@ -1,5 +1,6 @@
 using Bouncer.Commands;
 using Bouncer.Llm;
+using Bouncer.Logging;
 using Bouncer.Options;
 using Bouncer.Pipeline;
 using Bouncer.Rules;
@@ -23,6 +24,7 @@ services.AddSingleton<IConfiguration>(configuration);
 services.AddBouncerOptions(configuration);
 services.AddBouncerRules();
 services.AddBouncerLlm();
+services.AddBouncerLogging();
 services.AddBouncerPipeline();
 
 using var provider = services.BuildServiceProvider();

@@ -1,5 +1,6 @@
 using Bouncer.Commands;
 using Bouncer.Llm;
+using Bouncer.Logging;
 using Bouncer.Options;
 using Bouncer.Pipeline;
 using Bouncer.Rules;
@@ -58,7 +59,7 @@ public sealed class TestCommandTests
         var options = new BouncerOptions();
         var optionsWrapper = OptionsFactory.Create(options);
         var engine = new RegexRuleEngine(optionsWrapper);
-        var pipeline = new BouncerPipeline(engine, new NullLlmJudge(), optionsWrapper);
+        var pipeline = new BouncerPipeline(engine, new NullLlmJudge(), new NullAuditLog(), optionsWrapper);
         return (pipeline, engine, options);
     }
 }
