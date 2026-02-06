@@ -1,4 +1,5 @@
 using System.Text.Json;
+using Bouncer.Llm;
 using Bouncer.Models;
 using Bouncer.Options;
 using Bouncer.Rules;
@@ -9,26 +10,42 @@ namespace Bouncer.Pipeline;
 public sealed class BouncerPipeline : IBouncerPipeline
 {
     private readonly IRuleEngine _ruleEngine;
+    private readonly ILlmJudge _llmJudge;
     private readonly BouncerOptions _options;
 
-    public BouncerPipeline(IRuleEngine ruleEngine, IOptions<BouncerOptions> options)
+    public BouncerPipeline(
+        IRuleEngine ruleEngine,
+        ILlmJudge llmJudge,
+        IOptions<BouncerOptions> options)
     {
         _ruleEngine = ruleEngine;
+        _llmJudge = llmJudge;
         _options = options.Value;
     }
 
-    public Task<EvaluationResult> EvaluateAsync(HookInput input, CancellationToken cancellationToken = default)
+    public async Task<EvaluationResult> EvaluateAsync(
+        HookInput input,
+        CancellationToken cancellationToken = default)
     {
         var match = _ruleEngine.Evaluate(input);
         if (match is not null)
         {
-            return Task.FromResult(new EvaluationResult(match.Decision, EvaluationTier.Rules, match.Reason));
+            return new EvaluationResult(match.Decision, EvaluationTier.Rules, match.Reason);
+        }
+
+        if (_options.LlmFallback.Enabled)
+        {
+            var llmDecision = await _llmJudge.EvaluateAsync(input, cancellationToken);
+            if (llmDecision is not null)
+            {
+                return new EvaluationResult(llmDecision.Decision, EvaluationTier.Llm, llmDecision.Reason);
+            }
         }
 
         var decision = GetDefaultDecision();
         var reason = $"No rules matched; defaultAction: {_options.DefaultAction}";
 
-        return Task.FromResult(new EvaluationResult(decision, EvaluationTier.DefaultAction, reason));
+        return new EvaluationResult(decision, EvaluationTier.DefaultAction, reason);
     }
 
     public async Task<int> RunAsync(Stream input, Stream output, CancellationToken cancellationToken = default)

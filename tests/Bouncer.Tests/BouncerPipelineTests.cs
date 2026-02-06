@@ -1,5 +1,6 @@
 using System.Text;
 using System.Text.Json;
+using Bouncer.Llm;
 using Bouncer.Models;
 using Bouncer.Options;
 using Bouncer.Pipeline;
@@ -70,6 +71,6 @@ public sealed class BouncerPipelineTests
     {
         var optionsWrapper = OptionsFactory.Create(options);
         var engine = new RegexRuleEngine(optionsWrapper);
-        return new BouncerPipeline(engine, optionsWrapper);
+        return new BouncerPipeline(engine, new NullLlmJudge(), optionsWrapper);
     }
 }
