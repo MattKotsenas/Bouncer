@@ -107,7 +107,13 @@ public static class DefaultRuleGroups
                     "bash",
                     ToolField.Command,
                     SecretCurlPattern,
-                    "Secret content exfiltration")
+                    "Secret content exfiltration"),
+                new RuleDefinition(
+                    "webfetch-paste",
+                    "webfetch",
+                    ToolField.Url,
+                    @"(?i)https?://(pastebin\.com|gist\.github\.com|hastebin\.com|pastie\.org)",
+                    "Potential secret exfiltration")
             ]),
         new RuleGroupDefinition(
             "production-risk",

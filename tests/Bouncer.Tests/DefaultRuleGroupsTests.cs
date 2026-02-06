@@ -55,6 +55,11 @@ public sealed class DefaultRuleGroupsTests
             .Where(rule => rule.ToolName == "bash")
             .Should()
             .AllSatisfy(rule => rule.Field.Should().Be(ToolField.Command));
+
+        group.Rules
+            .Where(rule => rule.ToolName == "webfetch")
+            .Should()
+            .AllSatisfy(rule => rule.Field.Should().Be(ToolField.Url));
     }
 
     [TestMethod]
