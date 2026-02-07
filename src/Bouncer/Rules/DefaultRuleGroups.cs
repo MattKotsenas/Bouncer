@@ -2,78 +2,103 @@ namespace Bouncer.Rules;
 
 public static class DefaultRuleGroups
 {
-    private const string SecretPathPattern =
-        @"(?i)(^|[\\/])\.env(\.|$)|(^|[\\/])\.env\.production(\.|$)|\.(pem|key)$";
-
-    private const string SecretCommandPattern =
-        @"(?i)\b(cat|type|more|less|head|tail)\b.*(\.env(\.|$)|\.env\.production(\.|$)|\.(pem|key))";
-
-    private const string SecretCurlPattern =
-        @"(?i)\bcurl\b.*\s(--data|-d)\b.*(@)?(\.env(\.|$)|\.env\.production(\.|$)|\.(pem|key))";
-
     public static IReadOnlyList<RuleGroupDefinition> All { get; } =
     [
         new RuleGroupDefinition(
-            "destructive-shell",
+            "bash",
             [
                 new RuleDefinition(
                     "rm-rf-root",
                     "bash",
                     ToolField.Command,
-                    @"\brm\b\s+(-rf|-fr|--recursive\s+--force|--force\s+--recursive)\s+(/|~|\*)",
-                    "Destructive recursive delete"),
+                    DefaultRuleRegexes.RmRfRootPattern,
+                    "deny",
+                    "Destructive recursive delete",
+                    DefaultRuleRegexes.RmRfRoot),
                 new RuleDefinition(
                     "mkfs",
                     "bash",
                     ToolField.Command,
-                    @"\bmkfs(\.\w+)?\b",
-                    "Filesystem format"),
+                    DefaultRuleRegexes.MkfsPattern,
+                    "deny",
+                    "Filesystem format",
+                    DefaultRuleRegexes.Mkfs),
                 new RuleDefinition(
                     "dd-if",
                     "bash",
                     ToolField.Command,
-                    @"\bdd\s+if=",
-                    "Disk overwrite"),
+                    DefaultRuleRegexes.DdIfPattern,
+                    "deny",
+                    "Disk overwrite",
+                    DefaultRuleRegexes.DdIf),
                 new RuleDefinition(
                     "chmod-777",
                     "bash",
                     ToolField.Command,
-                    @"\bchmod\b\s+(-R\s+)?777\b",
-                    "Permission blowout"),
+                    DefaultRuleRegexes.Chmod777Pattern,
+                    "deny",
+                    "Permission blowout",
+                    DefaultRuleRegexes.Chmod777),
                 new RuleDefinition(
                     "truncate-system-file",
                     "bash",
                     ToolField.Command,
-                    @"(:\s*>\s*/etc/(passwd|shadow))|\btruncate\b.*\s/(etc/passwd|etc/shadow)",
-                    "System file truncation")
+                    DefaultRuleRegexes.TruncateSystemFilePattern,
+                    "deny",
+                    "System file truncation",
+                    DefaultRuleRegexes.TruncateSystemFile),
+                new RuleDefinition(
+                    "safe-bash-info",
+                    "bash",
+                    ToolField.Command,
+                    DefaultRuleRegexes.SafeBashInfoPattern,
+                    "allow",
+                    "Known safe shell command",
+                    DefaultRuleRegexes.SafeBashInfo)
             ]),
         new RuleGroupDefinition(
-            "dangerous-git",
+            "git",
             [
                 new RuleDefinition(
                     "git-force-push",
                     "bash",
                     ToolField.Command,
-                    @"\bgit\b\s+push\b.*\s(--force\b|--force-with-lease\b)",
-                    "Force push to remote"),
+                    DefaultRuleRegexes.GitForcePushPattern,
+                    "deny",
+                    "Force push to remote",
+                    DefaultRuleRegexes.GitForcePush),
                 new RuleDefinition(
                     "git-reset-hard-main",
                     "bash",
                     ToolField.Command,
-                    @"\bgit\b\s+reset\b.*\s--hard\b.*\b(main|master|release)\b",
-                    "Hard reset on protected branch"),
+                    DefaultRuleRegexes.GitResetHardPattern,
+                    "deny",
+                    "Hard reset on protected branch",
+                    DefaultRuleRegexes.GitResetHard),
                 new RuleDefinition(
                     "git-clean-fdx",
                     "bash",
                     ToolField.Command,
-                    @"\bgit\b\s+clean\b.*\s-fdx\b",
-                    "Remove untracked files"),
+                    DefaultRuleRegexes.GitCleanFdxPattern,
+                    "deny",
+                    "Remove untracked files",
+                    DefaultRuleRegexes.GitCleanFdx),
                 new RuleDefinition(
                     "git-checkout-discard",
                     "bash",
                     ToolField.Command,
-                    @"\bgit\b\s+checkout\b.*\s--\s+\.",
-                    "Discard working tree changes")
+                    DefaultRuleRegexes.GitCheckoutDiscardPattern,
+                    "deny",
+                    "Discard working tree changes",
+                    DefaultRuleRegexes.GitCheckoutDiscard),
+                new RuleDefinition(
+                    "safe-git-readonly",
+                    "bash",
+                    ToolField.Command,
+                    DefaultRuleRegexes.SafeGitReadonlyPattern,
+                    "allow",
+                    "Known safe git command",
+                    DefaultRuleRegexes.SafeGitReadonly)
             ]),
         new RuleGroupDefinition(
             "secrets-exposure",
@@ -82,38 +107,82 @@ public static class DefaultRuleGroups
                     "secret-file-write",
                     "write",
                     ToolField.Path,
-                    SecretPathPattern,
-                    "Secret file modification"),
+                    DefaultRuleRegexes.SecretPathPattern,
+                    "deny",
+                    "Secret file modification",
+                    DefaultRuleRegexes.SecretPath),
                 new RuleDefinition(
                     "secret-file-edit",
                     "edit",
                     ToolField.Path,
-                    SecretPathPattern,
-                    "Secret file modification"),
+                    DefaultRuleRegexes.SecretPathPattern,
+                    "deny",
+                    "Secret file modification",
+                    DefaultRuleRegexes.SecretPath),
                 new RuleDefinition(
                     "secret-file-read",
                     "read",
                     ToolField.Path,
-                    SecretPathPattern,
-                    "Secret file access"),
+                    DefaultRuleRegexes.SecretPathPattern,
+                    "deny",
+                    "Secret file access",
+                    DefaultRuleRegexes.SecretPath),
                 new RuleDefinition(
                     "secret-shell-read",
                     "bash",
                     ToolField.Command,
-                    SecretCommandPattern,
-                    "Secret file access via shell"),
+                    DefaultRuleRegexes.SecretCommandPattern,
+                    "deny",
+                    "Secret file access via shell",
+                    DefaultRuleRegexes.SecretCommand),
                 new RuleDefinition(
                     "secret-curl-post",
                     "bash",
                     ToolField.Command,
-                    SecretCurlPattern,
-                    "Secret content exfiltration"),
+                    DefaultRuleRegexes.SecretCurlPattern,
+                    "deny",
+                    "Secret content exfiltration",
+                    DefaultRuleRegexes.SecretCurl),
                 new RuleDefinition(
-                    "webfetch-paste",
-                    "webfetch",
-                    ToolField.Url,
-                    @"(?i)https?://(pastebin\.com|gist\.github\.com|hastebin\.com|pastie\.org)",
-                    "Potential secret exfiltration")
+                    "safe-file-write",
+                    "write",
+                    ToolField.Path,
+                    DefaultRuleRegexes.SafeReadPathPattern,
+                    "allow",
+                    "Known safe file write",
+                    DefaultRuleRegexes.SafeReadPath),
+                new RuleDefinition(
+                    "safe-file-edit",
+                    "edit",
+                    ToolField.Path,
+                    DefaultRuleRegexes.SafeReadPathPattern,
+                    "allow",
+                    "Known safe file edit",
+                    DefaultRuleRegexes.SafeReadPath),
+                new RuleDefinition(
+                    "safe-file-read",
+                    "read",
+                    ToolField.Path,
+                    DefaultRuleRegexes.SafeReadPathPattern,
+                    "allow",
+                    "Known safe file read",
+                    DefaultRuleRegexes.SafeReadPath),
+                new RuleDefinition(
+                    "safe-glob",
+                    "glob",
+                    ToolField.Pattern,
+                    DefaultRuleRegexes.SafeNonEmptyPattern,
+                    "allow",
+                    "Known safe file glob",
+                    DefaultRuleRegexes.SafeNonEmpty),
+                new RuleDefinition(
+                    "safe-grep",
+                    "grep",
+                    ToolField.Pattern,
+                    DefaultRuleRegexes.SafeNonEmptyPattern,
+                    "allow",
+                    "Known safe file search",
+                    DefaultRuleRegexes.SafeNonEmpty)
             ]),
         new RuleGroupDefinition(
             "production-risk",
@@ -122,26 +191,62 @@ public static class DefaultRuleGroups
                     "curl-delete-prod",
                     "bash",
                     ToolField.Command,
-                    @"\bcurl\b.*\s-X\s*DELETE\b.*(prod|production)",
-                    "Production DELETE request"),
+                    DefaultRuleRegexes.CurlDeleteProdPattern,
+                    "deny",
+                    "Production DELETE request",
+                    DefaultRuleRegexes.CurlDeleteProd),
                 new RuleDefinition(
                     "db-drop-truncate",
                     "bash",
                     ToolField.Command,
-                    @"\b(drop\s+database|drop\s+table|truncate\s+table)\b",
-                    "Destructive database command"),
+                    DefaultRuleRegexes.DbDropTruncatePattern,
+                    "deny",
+                    "Destructive database command",
+                    DefaultRuleRegexes.DbDropTruncate),
                 new RuleDefinition(
                     "kubectl-delete-prod",
                     "bash",
                     ToolField.Command,
-                    @"\bkubectl\b\s+delete\b.*\b(--namespace|-n)\s*(prod|production)\b",
-                    "Kubernetes delete in production namespace"),
+                    DefaultRuleRegexes.KubectlDeleteProdPattern,
+                    "deny",
+                    "Kubernetes delete in production namespace",
+                    DefaultRuleRegexes.KubectlDeleteProd),
                 new RuleDefinition(
                     "kubectl-apply-no-dryrun",
                     "bash",
                     ToolField.Command,
-                    @"\bkubectl\b\s+apply\b(?!.*--dry-run)",
-                    "Kubernetes apply without dry-run")
+                    DefaultRuleRegexes.KubectlApplyNoDryRunPattern,
+                    "deny",
+                    "Kubernetes apply without dry-run",
+                    DefaultRuleRegexes.KubectlApplyNoDryRun)
+            ]),
+        new RuleGroupDefinition(
+            "web",
+            [
+                new RuleDefinition(
+                    "webfetch-paste",
+                    "webfetch",
+                    ToolField.Url,
+                    DefaultRuleRegexes.WebFetchPastePattern,
+                    "deny",
+                    "Potential secret exfiltration",
+                    DefaultRuleRegexes.WebFetchPaste),
+                new RuleDefinition(
+                    "safe-webfetch",
+                    "webfetch",
+                    ToolField.Url,
+                    DefaultRuleRegexes.SafeWebFetchPattern,
+                    "allow",
+                    "Known safe web fetch",
+                    DefaultRuleRegexes.SafeWebFetch),
+                new RuleDefinition(
+                    "safe-websearch",
+                    "websearch",
+                    ToolField.Query,
+                    DefaultRuleRegexes.SafeNonEmptyPattern,
+                    "allow",
+                    "Known safe web search",
+                    DefaultRuleRegexes.SafeNonEmpty)
             ])
     ];
 }

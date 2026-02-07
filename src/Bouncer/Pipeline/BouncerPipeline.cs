@@ -4,6 +4,7 @@ using Bouncer.Logging;
 using Bouncer.Models;
 using Bouncer.Options;
 using Bouncer.Rules;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 namespace Bouncer.Pipeline;
@@ -12,18 +13,20 @@ public sealed class BouncerPipeline : IBouncerPipeline
 {
     private readonly IRuleEngine _ruleEngine;
     private readonly ILlmJudge _llmJudge;
-    private readonly IAuditLog _auditLog;
+    private readonly ILogger _denyLogger;
+    private readonly ILogger _allLogger;
     private readonly BouncerOptions _options;
 
     public BouncerPipeline(
         IRuleEngine ruleEngine,
         ILlmJudge llmJudge,
-        IAuditLog auditLog,
+        ILoggerFactory loggerFactory,
         IOptions<BouncerOptions> options)
     {
         _ruleEngine = ruleEngine;
         _llmJudge = llmJudge;
-        _auditLog = auditLog;
+        _denyLogger = loggerFactory.CreateLogger(AuditLogCategories.Denials);
+        _allLogger = loggerFactory.CreateLogger(AuditLogCategories.All);
         _options = options.Value;
     }
 
@@ -56,7 +59,7 @@ public sealed class BouncerPipeline : IBouncerPipeline
                 $"No rules matched; defaultAction: {_options.DefaultAction}");
         }
 
-        await MaybeLogAsync(input, result, cancellationToken);
+        MaybeLog(input, result);
         return result;
     }
 
@@ -120,18 +123,13 @@ public sealed class BouncerPipeline : IBouncerPipeline
         return decision == PermissionDecision.Deny ? 2 : 0;
     }
 
-    private async Task MaybeLogAsync(
-        HookInput input,
-        EvaluationResult result,
-        CancellationToken cancellationToken)
+    private void MaybeLog(HookInput input, EvaluationResult result)
     {
-        if (!_options.Logging.Enabled)
-        {
-            return;
-        }
+        var logger = result.Decision == PermissionDecision.Deny
+            ? _denyLogger
+            : _allLogger;
 
-        if (string.Equals(_options.Logging.Level, "denials-only", StringComparison.OrdinalIgnoreCase)
-            && result.Decision != PermissionDecision.Deny)
+        if (!logger.IsEnabled(LogLevel.Information))
         {
             return;
         }
@@ -145,6 +143,11 @@ public sealed class BouncerPipeline : IBouncerPipeline
             result.Tier,
             result.Reason);
 
-        await _auditLog.WriteAsync(entry, cancellationToken);
+        logger.Log(
+            LogLevel.Information,
+            new EventId(1, "Audit"),
+            entry,
+            null,
+            static (state, _) => string.Empty);
     }
 }

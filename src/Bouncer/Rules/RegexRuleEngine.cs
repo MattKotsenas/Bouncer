@@ -55,10 +55,9 @@ public sealed class RegexRuleEngine : IRuleEngine
                 continue;
             }
 
-            var decision = ParseAction(groupOptions.Action);
             foreach (var rule in group.Rules)
             {
-                rules.Add(new CompiledRule(rule, group.Name, decision, rule.Reason));
+                rules.Add(new CompiledRule(rule, group.Name, ParseAction(rule.Action), rule.Reason));
             }
         }
 
@@ -75,6 +74,7 @@ public sealed class RegexRuleEngine : IRuleEngine
                     custom.ToolMatch,
                     ResolveField(custom.ToolMatch),
                     custom.Pattern,
+                    custom.Action,
                     reason);
 
                 rules.Add(new CompiledRule(rule, "custom", ParseAction(custom.Action), reason));
@@ -126,6 +126,7 @@ public sealed class RegexRuleEngine : IRuleEngine
         string Reason)
     {
         public Regex Regex { get; } =
-            new(Rule.Pattern, RegexOptions.Compiled | RegexOptions.IgnoreCase);
+            Rule.RegexFactory?.Invoke()
+            ?? new Regex(Rule.Pattern, RegexOptions.Compiled | RegexOptions.IgnoreCase);
     }
 }

@@ -30,10 +30,11 @@ public sealed class BouncerOptions
     private static Dictionary<string, RuleGroupOptions> DefaultRuleGroups() =>
         new(StringComparer.OrdinalIgnoreCase)
         {
-            ["destructive-shell"] = new RuleGroupOptions(),
-            ["dangerous-git"] = new RuleGroupOptions(),
+            ["bash"] = new RuleGroupOptions(),
+            ["git"] = new RuleGroupOptions(),
             ["secrets-exposure"] = new RuleGroupOptions(),
-            ["production-risk"] = new RuleGroupOptions()
+            ["production-risk"] = new RuleGroupOptions(),
+            ["web"] = new RuleGroupOptions()
         };
 }
 
@@ -41,9 +42,6 @@ public sealed class RuleGroupOptions
 {
     [JsonPropertyName("enabled")]
     public bool Enabled { get; set; } = true;
-
-    [JsonPropertyName("action")]
-    public string Action { get; set; } = "deny";
 }
 
 public sealed class CustomRuleOptions
@@ -128,12 +126,9 @@ public sealed class LlmProviderOptions
 
 public sealed class LoggingOptions
 {
-    [JsonPropertyName("enabled")]
-    public bool Enabled { get; set; }
-
     [JsonPropertyName("path")]
     public string Path { get; set; } = ".bouncer/audit.log";
 
     [JsonPropertyName("level")]
-    public string Level { get; set; } = "denials-only";
+    public string Level { get; set; } = "none";
 }

@@ -1,3 +1,5 @@
+using System.Text.RegularExpressions;
+
 namespace Bouncer.Rules;
 
 public enum ToolField
@@ -15,7 +17,9 @@ public sealed record RuleDefinition(
     string ToolName,
     ToolField Field,
     string Pattern,
-    string Reason);
+    string Action,
+    string Reason,
+    Func<Regex>? RegexFactory = null);
 
 public sealed record RuleGroupDefinition(
     string Name,

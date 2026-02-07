@@ -10,7 +10,7 @@ namespace Bouncer.Tests;
 public sealed class RegexRuleEngineTests
 {
     [TestMethod]
-    public void MatchesDestructiveShellRules()
+    public void MatchesBashRules()
     {
         var engine = CreateEngine(new BouncerOptions());
 
@@ -18,7 +18,7 @@ public sealed class RegexRuleEngineTests
 
         match.Should().NotBeNull();
         match!.Decision.Should().Be(PermissionDecision.Deny);
-        match.GroupName.Should().Be("destructive-shell");
+        match.GroupName.Should().Be("bash");
         match.Rule.Name.Should().Be("rm-rf-root");
     }
 
@@ -26,7 +26,7 @@ public sealed class RegexRuleEngineTests
     public void DisabledGroup_SkipsMatches()
     {
         var options = new BouncerOptions();
-        options.RuleGroups["dangerous-git"].Enabled = false;
+        options.RuleGroups["git"].Enabled = false;
         var engine = CreateEngine(options);
 
         var match = engine.Evaluate(HookInput.Bash("git push --force origin main"));

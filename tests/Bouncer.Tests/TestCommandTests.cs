@@ -1,10 +1,10 @@
 using Bouncer.Commands;
 using Bouncer.Llm;
-using Bouncer.Logging;
 using Bouncer.Options;
 using Bouncer.Pipeline;
 using Bouncer.Rules;
 using FluentAssertions;
+using Microsoft.Extensions.Logging;
 using OptionsFactory = Microsoft.Extensions.Options.Options;
 
 namespace Bouncer.Tests;
@@ -59,7 +59,8 @@ public sealed class TestCommandTests
         var options = new BouncerOptions();
         var optionsWrapper = OptionsFactory.Create(options);
         var engine = new RegexRuleEngine(optionsWrapper);
-        var pipeline = new BouncerPipeline(engine, new NullLlmJudge(), new NullAuditLog(), optionsWrapper);
+        var loggerFactory = LoggerFactory.Create(builder => { });
+        var pipeline = new BouncerPipeline(engine, new NullLlmJudge(), loggerFactory, optionsWrapper);
         return (pipeline, engine, options);
     }
 }

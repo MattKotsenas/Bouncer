@@ -12,6 +12,7 @@ public sealed class BouncerOptionsValidator : IValidateOptions<BouncerOptions>
 
     private static readonly HashSet<string> AllowedLogLevels = new(StringComparer.OrdinalIgnoreCase)
     {
+        "none",
         "denials-only",
         "all"
     };
@@ -33,16 +34,6 @@ public sealed class BouncerOptionsValidator : IValidateOptions<BouncerOptions>
         if (options.RuleGroups is null)
         {
             failures.Add("ruleGroups is required");
-        }
-        else
-        {
-            foreach (var (groupName, group) in options.RuleGroups)
-            {
-                if (!IsActionValid(group.Action))
-                {
-                    failures.Add($"ruleGroups.{groupName}.action must be 'allow' or 'deny'");
-                }
-            }
         }
 
         if (options.CustomRules is not null)
@@ -122,12 +113,13 @@ public sealed class BouncerOptionsValidator : IValidateOptions<BouncerOptions>
         {
             if (!AllowedLogLevels.Contains(options.Logging.Level))
             {
-                failures.Add("logging.level must be 'denials-only' or 'all'");
+                failures.Add("logging.level must be 'none', 'denials-only', or 'all'");
             }
 
-            if (options.Logging.Enabled && string.IsNullOrWhiteSpace(options.Logging.Path))
+            if (!string.Equals(options.Logging.Level, "none", StringComparison.OrdinalIgnoreCase)
+                && string.IsNullOrWhiteSpace(options.Logging.Path))
             {
-                failures.Add("logging.path is required when logging is enabled");
+                failures.Add("logging.path is required when logging.level is not 'none'");
             }
         }
 

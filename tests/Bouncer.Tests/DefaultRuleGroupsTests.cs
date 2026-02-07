@@ -13,17 +13,18 @@ public sealed class DefaultRuleGroupsTests
 
         groupNames.Should().BeEquivalentTo(
             [
-                "destructive-shell",
-                "dangerous-git",
+                "bash",
+                "git",
                 "secrets-exposure",
-                "production-risk"
+                "production-risk",
+                "web"
             ]);
     }
 
     [TestMethod]
-    public void DestructiveShell_RulesTargetBashCommands()
+    public void Bash_RulesTargetBashCommands()
     {
-        var group = DefaultRuleGroups.All.Single(g => g.Name == "destructive-shell");
+        var group = DefaultRuleGroups.All.Single(g => g.Name == "bash");
 
         group.Rules.Should().AllSatisfy(rule =>
         {
@@ -33,9 +34,9 @@ public sealed class DefaultRuleGroupsTests
     }
 
     [TestMethod]
-    public void DangerousGit_IncludesForceWithLease()
+    public void Git_IncludesForceWithLease()
     {
-        var group = DefaultRuleGroups.All.Single(g => g.Name == "dangerous-git");
+        var group = DefaultRuleGroups.All.Single(g => g.Name == "git");
         var forceRule = group.Rules.Single(rule => rule.Name == "git-force-push");
 
         forceRule.Pattern.Should().Contain("--force-with-lease");
@@ -57,9 +58,9 @@ public sealed class DefaultRuleGroupsTests
             .AllSatisfy(rule => rule.Field.Should().Be(ToolField.Command));
 
         group.Rules
-            .Where(rule => rule.ToolName == "webfetch")
+            .Where(rule => rule.ToolName is "glob" or "grep")
             .Should()
-            .AllSatisfy(rule => rule.Field.Should().Be(ToolField.Url));
+            .AllSatisfy(rule => rule.Field.Should().Be(ToolField.Pattern));
     }
 
     [TestMethod]
@@ -72,5 +73,21 @@ public sealed class DefaultRuleGroupsTests
             rule.ToolName.Should().Be("bash");
             rule.Field.Should().Be(ToolField.Command);
         });
+    }
+
+    [TestMethod]
+    public void Web_RulesUseUrlOrQuery()
+    {
+        var group = DefaultRuleGroups.All.Single(g => g.Name == "web");
+
+        group.Rules
+            .Where(rule => rule.ToolName == "webfetch")
+            .Should()
+            .AllSatisfy(rule => rule.Field.Should().Be(ToolField.Url));
+
+        group.Rules
+            .Where(rule => rule.ToolName == "websearch")
+            .Should()
+            .AllSatisfy(rule => rule.Field.Should().Be(ToolField.Query));
     }
 }

@@ -28,7 +28,7 @@ public sealed class RuleGroupBehaviorTests
         var match = engine.Evaluate(HookInput.WebFetch("https://pastebin.com/raw/abc123"));
 
         match.Should().NotBeNull();
-        match!.Rule.Name.Should().Be("webfetch-paste");
+        match!.GroupName.Should().Be("web");
     }
 
     [TestMethod]
@@ -39,7 +39,7 @@ public sealed class RuleGroupBehaviorTests
         var match = engine.Evaluate(HookInput.Bash("git push --force-with-lease origin main"));
 
         match.Should().NotBeNull();
-        match!.GroupName.Should().Be("dangerous-git");
+        match!.GroupName.Should().Be("git");
     }
 
     [TestMethod]
@@ -51,6 +51,18 @@ public sealed class RuleGroupBehaviorTests
 
         match.Should().NotBeNull();
         match!.GroupName.Should().Be("production-risk");
+    }
+
+    [TestMethod]
+    public void Bash_AllowsSafeCommand()
+    {
+        var engine = CreateEngine();
+
+        var match = engine.Evaluate(HookInput.Bash("ls -la"));
+
+        match.Should().NotBeNull();
+        match!.Decision.Should().Be(PermissionDecision.Allow);
+        match.GroupName.Should().Be("bash");
     }
 
     private static RegexRuleEngine CreateEngine() =>

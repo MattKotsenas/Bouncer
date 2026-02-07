@@ -8,6 +8,7 @@ using Bouncer.Pipeline;
 using Bouncer.Rules;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System.Text.Json;
 
@@ -39,10 +40,11 @@ public sealed class Tier1PipelineBenchmarks
 
         var optionsWrapper = Options.Create(options);
         var engine = new RegexRuleEngine(optionsWrapper);
+        var loggerFactory = LoggerFactory.Create(builder => { });
         _pipeline = new BouncerPipeline(
             engine,
             new NullLlmJudge(),
-            new NullAuditLog(),
+            loggerFactory,
             optionsWrapper);
 
         _dangerousInput = HookInput.Bash("rm -rf /");

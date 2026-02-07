@@ -2,10 +2,11 @@
   "version": 1,
   "defaultAction": "allow",
   "ruleGroups": {
-    "destructive-shell": { "enabled": true, "action": "deny" },
-    "dangerous-git": { "enabled": true, "action": "deny" },
-    "secrets-exposure": { "enabled": true, "action": "deny" },
-    "production-risk": { "enabled": true, "action": "deny" }
+    "bash": { "enabled": true },
+    "git": { "enabled": true },
+    "secrets-exposure": { "enabled": true },
+    "production-risk": { "enabled": true },
+    "web": { "enabled": true }
   },
   "customRules": [],
   "llmFallback": {
@@ -20,8 +21,7 @@
     ]
   },
   "logging": {
-    "enabled": false,
-    "path": ".bouncer/audit.log",
-    "level": "denials-only"
+    "level": "none",
+    "path": ".bouncer/audit.log"
   }
 }

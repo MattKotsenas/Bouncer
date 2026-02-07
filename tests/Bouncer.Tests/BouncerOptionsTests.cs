@@ -15,23 +15,21 @@ public sealed class BouncerOptionsTests
         options.Version.Should().Be(1);
         options.DefaultAction.Should().Be("allow");
         options.RuleGroups.Should().ContainKeys(
-            "destructive-shell",
-            "dangerous-git",
+            "bash",
+            "git",
             "secrets-exposure",
-            "production-risk");
+            "production-risk",
+            "web");
 
         options.RuleGroups.Values.Should().AllSatisfy(group =>
         {
             group.Enabled.Should().BeTrue();
-            group.Action.Should().Be("deny");
         });
-
         options.CustomRules.Should().BeEmpty();
         options.LlmFallback.Enabled.Should().BeTrue();
         options.LlmFallback.ProviderChain.Should().NotBeEmpty();
-        options.Logging.Enabled.Should().BeFalse();
         options.Logging.Path.Should().Be(".bouncer/audit.log");
-        options.Logging.Level.Should().Be("denials-only");
+        options.Logging.Level.Should().Be("none");
     }
 
     [TestMethod]

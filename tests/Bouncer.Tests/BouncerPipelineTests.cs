@@ -1,12 +1,12 @@
 using System.Text;
 using System.Text.Json;
 using Bouncer.Llm;
-using Bouncer.Logging;
 using Bouncer.Models;
 using Bouncer.Options;
 using Bouncer.Pipeline;
 using Bouncer.Rules;
 using FluentAssertions;
+using Microsoft.Extensions.Logging;
 using OptionsFactory = Microsoft.Extensions.Options.Options;
 
 namespace Bouncer.Tests;
@@ -30,7 +30,7 @@ public sealed class BouncerPipelineTests
     {
         var pipeline = CreatePipeline(new BouncerOptions());
 
-        var result = await pipeline.EvaluateAsync(HookInput.Bash("echo ok"));
+        var result = await pipeline.EvaluateAsync(HookInput.Bash("printf ok"));
 
         result.Decision.Should().Be(PermissionDecision.Allow);
         result.Tier.Should().Be(EvaluationTier.DefaultAction);
@@ -43,7 +43,7 @@ public sealed class BouncerPipelineTests
         var options = new BouncerOptions { DefaultAction = "deny" };
         var pipeline = CreatePipeline(options);
 
-        var result = await pipeline.EvaluateAsync(HookInput.Bash("echo ok"));
+        var result = await pipeline.EvaluateAsync(HookInput.Bash("printf ok"));
 
         result.Decision.Should().Be(PermissionDecision.Deny);
         result.Tier.Should().Be(EvaluationTier.DefaultAction);
@@ -57,7 +57,7 @@ public sealed class BouncerPipelineTests
         var llmJudge = new FakeLlmJudge(new LlmDecision(PermissionDecision.Deny, "LLM decision", 0.9));
         var pipeline = CreatePipeline(options, llmJudge);
 
-        var result = await pipeline.EvaluateAsync(HookInput.Bash("echo ok"));
+        var result = await pipeline.EvaluateAsync(HookInput.Bash("printf ok"));
 
         result.Tier.Should().Be(EvaluationTier.Llm);
         result.Decision.Should().Be(PermissionDecision.Deny);
@@ -99,14 +99,15 @@ public sealed class BouncerPipelineTests
     private static IBouncerPipeline CreatePipeline(
         BouncerOptions options,
         ILlmJudge? llmJudge = null,
-        IAuditLog? auditLog = null)
+        ILoggerFactory? loggerFactory = null)
     {
         var optionsWrapper = OptionsFactory.Create(options);
         var engine = new RegexRuleEngine(optionsWrapper);
+        var factory = loggerFactory ?? LoggerFactory.Create(builder => { });
         return new BouncerPipeline(
             engine,
             llmJudge ?? new NullLlmJudge(),
-            auditLog ?? new NullAuditLog(),
+            factory,
             optionsWrapper);
     }
 

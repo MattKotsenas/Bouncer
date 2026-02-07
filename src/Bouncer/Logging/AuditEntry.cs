@@ -9,8 +9,3 @@ public sealed record AuditEntry(
     PermissionDecision Decision,
     EvaluationTier Tier,
     string Reason);
-
-public interface IAuditLog
-{
-    Task WriteAsync(AuditEntry entry, CancellationToken cancellationToken = default);
-}
