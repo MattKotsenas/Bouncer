@@ -35,6 +35,8 @@ Key settings:
 - `llmFallback`: enable LLM-as-judge and configure providers.
 - `logging`: set `logging.level` to `none`, `denials-only`, or `all`.
 
+Tier 1 includes allow rules for known-safe commands to keep routine calls out of the LLM fallback.
+
 ## LLM providers
 
 Providers are resolved from env vars first, then an optional `apiKeyCommand`:

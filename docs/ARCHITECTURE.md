@@ -11,7 +11,7 @@ Bouncer runs as a PreToolUse hook. That means it executes as a subprocess on eve
 | DI container build | < 3ms | Few singleton registrations |
 | stdin read + JSON parse | < 2ms | System.Text.Json source gen |
 | Config load + validation | < 3ms | Options + source-gen binding |
-| Regex rule evaluation | < 1ms | Compiled regex, short-circuit |
+| Regex rule evaluation | < 1ms | Source-generated regex, short-circuit |
 | Total (Tier 1) | < 25ms | 99% of invocations |
 | LLM fallback (Tier 2) | 500-2000ms | Only when ambiguous |
 
@@ -21,7 +21,9 @@ A normal .NET CLI tool often spends 150-300ms on startup (JIT, assembly loading)
 Tradeoff: no runtime reflection. This is why Bouncer relies on source generators for JSON and configuration binding.
 
 ## Two-tier decision engine
-Tier 1 is a compiled-regex rule engine. It is deterministic and sub-millisecond. Tier 2 is an LLM-as-judge for ambiguous inputs.
+Tier 1 is a source-generated-regex rule engine. It is deterministic and sub-millisecond. Tier 2 is an LLM-as-judge for ambiguous inputs.
+
+Tier 1 includes both deny rules and allow rules (known-safe commands). Allow rules keep routine calls from reaching Tier 2 and reduce LLM usage.
 
 We considered a bloom filter as a Tier 0 optimization. At the current rule set size (~50-100 patterns), a bloom filter saves <0.1ms. The complexity is not worth it today. If rule sets grow to thousands, revisit.
 
