@@ -17,6 +17,30 @@ bouncer test bash "rm -rf /"
 
 Configure your agent's PreToolUse hook to run `bouncer` (it reads the tool JSON from stdin and writes a decision to stdout).
 
+## Plugin install (Claude Code / Copilot CLI)
+
+Bouncer ships a plugin manifest so you can install it from a marketplace. The plugin runs `bouncer` on every tool call, so the CLI must be on your PATH.
+
+```bash
+dotnet tool install --global bouncer
+```
+
+### Claude Code
+
+```bash
+claude plugin marketplace add <agent-plugins-source>
+claude plugin install bouncer@agent-plugins
+```
+
+### Copilot CLI
+
+```bash
+copilot plugin marketplace add <agent-plugins-source>
+copilot plugin install bouncer@agent-plugins
+```
+
+Restart the CLI after install and run `bouncer init` in each project to create `.bouncer.json`.
+
 ## Commands
 
 - `bouncer` - hook mode (reads stdin, writes JSON, exits 0/2)

@@ -1,0 +1,16 @@
+{
+  "description": "Run Bouncer before every tool call.",
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bouncer"
+          }
+        ]
+      }
+    ]
+  }
+}
