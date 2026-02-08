@@ -15,6 +15,7 @@ public sealed class DefaultRuleGroupsTests
             [
                 "bash",
                 "powershell",
+                "builtins",
                 "git",
                 "secrets-exposure",
                 "production-risk",
@@ -61,19 +62,30 @@ public sealed class DefaultRuleGroupsTests
         var group = DefaultRuleGroups.All.Single(g => g.Name == "secrets-exposure");
 
         group.Rules
+            .Where(rule => rule.ToolName == "bash")
+            .Should()
+            .AllSatisfy(rule => rule.Field.Should().Be(ToolField.Command));
+    }
+
+    [TestMethod]
+    public void Builtins_UsesExpectedToolFields()
+    {
+        var group = DefaultRuleGroups.All.Single(g => g.Name == "builtins");
+
+        group.Rules
             .Where(rule => rule.ToolName is "write" or "edit" or "read")
             .Should()
             .AllSatisfy(rule => rule.Field.Should().Be(ToolField.Path));
 
         group.Rules
-            .Where(rule => rule.ToolName == "bash")
-            .Should()
-            .AllSatisfy(rule => rule.Field.Should().Be(ToolField.Command));
-
-        group.Rules
             .Where(rule => rule.ToolName is "glob" or "grep")
             .Should()
             .AllSatisfy(rule => rule.Field.Should().Be(ToolField.Pattern));
+
+        group.Rules
+            .Where(rule => rule.ToolName == "todo")
+            .Should()
+            .AllSatisfy(rule => rule.Field.Should().Be(ToolField.Command));
     }
 
     [TestMethod]

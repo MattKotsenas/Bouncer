@@ -4,6 +4,7 @@
   "ruleGroups": {
     "bash": { "enabled": true },
     "powershell": { "enabled": true },
+    "builtins": { "enabled": true },
     "git": { "enabled": true },
     "secrets-exposure": { "enabled": true },
     "production-risk": { "enabled": true },

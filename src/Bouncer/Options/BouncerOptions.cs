@@ -29,6 +29,7 @@ public sealed class BouncerOptions
         {
             ["bash"] = new RuleGroupOptions(),
             ["powershell"] = new RuleGroupOptions(),
+            ["builtins"] = new RuleGroupOptions(),
             ["git"] = new RuleGroupOptions(),
             ["secrets-exposure"] = new RuleGroupOptions(),
             ["production-risk"] = new RuleGroupOptions(),

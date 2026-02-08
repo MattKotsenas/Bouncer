@@ -34,6 +34,8 @@ public static partial class DefaultRuleRegexes
     public const string SecretCurlPattern =
         @"(?i)\bcurl\b.*\s(--data|-d)\b.*(@)?(\.env(\.|$)|\.env\.production(\.|$)|\.(pem|key))";
 
+    public const string BouncerConfigPathPattern = @"(^|[\\/])\.bouncer\.json$";
+
     public const string WebFetchPastePattern =
         @"(?i)https?://(pastebin\.com|gist\.github\.com|hastebin\.com|pastie\.org)";
 
@@ -116,6 +118,9 @@ public static partial class DefaultRuleRegexes
 
     [GeneratedRegex(SecretPathPattern, RegexOptions.IgnoreCase)]
     public static partial Regex SecretPath();
+
+    [GeneratedRegex(BouncerConfigPathPattern, RegexOptions.IgnoreCase)]
+    public static partial Regex BouncerConfigPath();
 
     [GeneratedRegex(SecretCommandPattern, RegexOptions.IgnoreCase)]
     public static partial Regex SecretCommand();

@@ -10,14 +10,14 @@ namespace Bouncer.Tests;
 public sealed class RuleGroupBehaviorTests
 {
     [TestMethod]
-    public void SecretsExposure_DeniesEnvWrite()
+    public void Builtins_DeniesEnvWrite()
     {
         var engine = CreateEngine();
 
         var match = engine.Evaluate(HookInput.Write("C:\\project\\.env", "secret=value"));
 
         match.Should().NotBeNull();
-        match!.GroupName.Should().Be("secrets-exposure");
+        match!.GroupName.Should().Be("builtins");
     }
 
     [TestMethod]
@@ -80,6 +80,18 @@ public sealed class RuleGroupBehaviorTests
         match.Should().NotBeNull();
         match!.Decision.Should().Be(PermissionDecision.Deny);
         match.GroupName.Should().Be("powershell");
+    }
+
+    [TestMethod]
+    public void Builtins_BlockBouncerConfigEdit()
+    {
+        var engine = CreateEngine();
+
+        var match = engine.Evaluate(HookInput.Edit(".bouncer.json", "{ }"));
+
+        match.Should().NotBeNull();
+        match!.Decision.Should().Be(PermissionDecision.Deny);
+        match.GroupName.Should().Be("builtins");
     }
 
     private static RegexRuleEngine CreateEngine() =>
