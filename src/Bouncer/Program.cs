@@ -24,7 +24,7 @@ services.AddSingleton<IConfiguration>(configuration);
 services.AddBouncerOptions(configuration);
 services.AddBouncerRules();
 services.AddBouncerLlm();
-services.AddBouncerLogging();
+services.AddBouncerLogging(configuration);
 services.AddBouncerPipeline();
 
 using var provider = services.BuildServiceProvider();

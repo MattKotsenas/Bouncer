@@ -2,6 +2,6 @@ namespace Bouncer.Logging;
 
 public static class AuditLogCategories
 {
-    public const string Denials = "Bouncer.Audit.Denials";
-    public const string All = "Bouncer.Audit.All";
+    public const string Deny = "Bouncer.Audit.Deny";
+    public const string Allow = "Bouncer.Audit.Allow";
 }

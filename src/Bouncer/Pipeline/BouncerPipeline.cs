@@ -14,7 +14,7 @@ public sealed class BouncerPipeline : IBouncerPipeline
     private readonly IRuleEngine _ruleEngine;
     private readonly ILlmJudge _llmJudge;
     private readonly ILogger _denyLogger;
-    private readonly ILogger _allLogger;
+    private readonly ILogger _allowLogger;
     private readonly BouncerOptions _options;
 
     public BouncerPipeline(
@@ -25,8 +25,8 @@ public sealed class BouncerPipeline : IBouncerPipeline
     {
         _ruleEngine = ruleEngine;
         _llmJudge = llmJudge;
-        _denyLogger = loggerFactory.CreateLogger(AuditLogCategories.Denials);
-        _allLogger = loggerFactory.CreateLogger(AuditLogCategories.All);
+        _denyLogger = loggerFactory.CreateLogger(AuditLogCategories.Deny);
+        _allowLogger = loggerFactory.CreateLogger(AuditLogCategories.Allow);
         _options = options.Value;
     }
 
@@ -127,7 +127,7 @@ public sealed class BouncerPipeline : IBouncerPipeline
     {
         var logger = result.Decision == PermissionDecision.Deny
             ? _denyLogger
-            : _allLogger;
+            : _allowLogger;
 
         if (!logger.IsEnabled(LogLevel.Information))
         {
@@ -143,11 +143,6 @@ public sealed class BouncerPipeline : IBouncerPipeline
             result.Tier,
             result.Reason);
 
-        logger.Log(
-            LogLevel.Information,
-            new EventId(1, "Audit"),
-            entry,
-            null,
-            static (state, _) => string.Empty);
+        logger.LogInformation("Audit {Entry}", entry);
     }
 }

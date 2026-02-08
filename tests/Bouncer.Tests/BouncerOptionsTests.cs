@@ -29,7 +29,6 @@ public sealed class BouncerOptionsTests
         options.LlmFallback.Enabled.Should().BeTrue();
         options.LlmFallback.ProviderChain.Should().NotBeEmpty();
         options.Logging.Path.Should().Be(".bouncer/audit.log");
-        options.Logging.Level.Should().Be("none");
     }
 
     [TestMethod]

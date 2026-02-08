@@ -22,12 +22,11 @@ public sealed class AuditLogTests
         {
             Logging = new LoggingOptions
             {
-                Level = "denials-only",
                 Path = path
             }
         };
 
-        var loggerFactory = CreateLoggerFactory(options);
+        var loggerFactory = CreateLoggerFactory(options, LogLevel.None);
         var pipeline = CreatePipeline(options, loggerFactory);
 
         await pipeline.EvaluateAsync(HookInput.Bash("rm -rf /"));
@@ -44,12 +43,11 @@ public sealed class AuditLogTests
         {
             Logging = new LoggingOptions
             {
-                Level = "denials-only",
                 Path = path
             }
         };
 
-        var loggerFactory = CreateLoggerFactory(options);
+        var loggerFactory = CreateLoggerFactory(options, LogLevel.None);
         var pipeline = CreatePipeline(options, loggerFactory);
 
         await pipeline.EvaluateAsync(HookInput.Bash("echo ok"));
@@ -65,12 +63,11 @@ public sealed class AuditLogTests
         {
             Logging = new LoggingOptions
             {
-                Level = "all",
                 Path = path
             }
         };
 
-        var loggerFactory = CreateLoggerFactory(options);
+        var loggerFactory = CreateLoggerFactory(options, LogLevel.Information);
         var pipeline = CreatePipeline(options, loggerFactory);
 
         await pipeline.EvaluateAsync(HookInput.Bash("echo ok"));
@@ -86,10 +83,13 @@ public sealed class AuditLogTests
         return new BouncerPipeline(engine, new NullLlmJudge(), loggerFactory, optionsWrapper);
     }
 
-    private static ILoggerFactory CreateLoggerFactory(BouncerOptions options) =>
+    private static ILoggerFactory CreateLoggerFactory(BouncerOptions options, LogLevel allowLevel) =>
         LoggerFactory.Create(builder =>
         {
             builder.ClearProviders();
+            builder.AddFilter((category, level) => level >= LogLevel.Error);
+            builder.AddFilter(AuditLogCategories.Deny, LogLevel.Information);
+            builder.AddFilter(AuditLogCategories.Allow, allowLevel);
             builder.AddProvider(new FileAuditLoggerProvider(options.Logging));
         });
 

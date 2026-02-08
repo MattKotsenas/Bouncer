@@ -21,7 +21,6 @@
     ]
   },
   "logging": {
-    "level": "none",
     "path": ".bouncer/audit.log"
   }
 }

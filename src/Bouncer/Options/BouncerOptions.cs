@@ -128,7 +128,4 @@ public sealed class LoggingOptions
 {
     [JsonPropertyName("path")]
     public string Path { get; set; } = ".bouncer/audit.log";
-
-    [JsonPropertyName("level")]
-    public string Level { get; set; } = "none";
 }

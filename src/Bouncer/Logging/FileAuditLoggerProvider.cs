@@ -18,7 +18,7 @@ public sealed partial class FileAuditLoggerProvider : ILoggerProvider
     }
 
     public ILogger CreateLogger(string categoryName) =>
-        new FileAuditLogger(categoryName, _options, _sync);
+        new FileAuditLogger(_options, _sync);
 
     public void Dispose()
     {
@@ -26,34 +26,18 @@ public sealed partial class FileAuditLoggerProvider : ILoggerProvider
 
     private sealed class FileAuditLogger : ILogger
     {
-        private readonly string _categoryName;
         private readonly LoggingOptions _options;
         private readonly object _sync;
 
-        public FileAuditLogger(string categoryName, LoggingOptions options, object sync)
+        public FileAuditLogger(LoggingOptions options, object sync)
         {
-            _categoryName = categoryName;
             _options = options;
             _sync = sync;
         }
 
         public IDisposable? BeginScope<TState>(TState state) where TState : notnull => null;
 
-        public bool IsEnabled(LogLevel logLevel)
-        {
-            if (string.Equals(_options.Level, "none", StringComparison.OrdinalIgnoreCase))
-            {
-                return false;
-            }
-
-            if (string.Equals(_options.Level, "denials-only", StringComparison.OrdinalIgnoreCase)
-                && !string.Equals(_categoryName, AuditLogCategories.Denials, StringComparison.OrdinalIgnoreCase))
-            {
-                return false;
-            }
-
-            return logLevel >= LogLevel.Information;
-        }
+        public bool IsEnabled(LogLevel logLevel) => logLevel != LogLevel.None;
 
         public void Log<TState>(
             LogLevel logLevel,
@@ -67,12 +51,7 @@ public sealed partial class FileAuditLoggerProvider : ILoggerProvider
                 return;
             }
 
-            if (state is not AuditEntry entry)
-            {
-                return;
-            }
-
-            if (string.IsNullOrWhiteSpace(_options.Path))
+            if (!TryGetAuditEntry(state, out var entry) || entry is null)
             {
                 return;
             }
@@ -94,6 +73,31 @@ public sealed partial class FileAuditLoggerProvider : ILoggerProvider
                 JsonSerializer.Serialize(stream, entry, AuditLogJsonContext.Default.AuditEntry);
                 stream.Write(NewLine, 0, NewLine.Length);
             }
+        }
+
+        private static bool TryGetAuditEntry<TState>(TState state, out AuditEntry? entry)
+        {
+            switch (state)
+            {
+                case AuditEntry auditEntry:
+                    entry = auditEntry;
+                    return true;
+                case IReadOnlyList<KeyValuePair<string, object?>> values:
+                    foreach (var value in values)
+                    {
+                        if ((string.Equals(value.Key, "Entry", StringComparison.OrdinalIgnoreCase)
+                            || string.Equals(value.Key, "@Entry", StringComparison.OrdinalIgnoreCase))
+                            && value.Value is AuditEntry structuredEntry)
+                        {
+                            entry = structuredEntry;
+                            return true;
+                        }
+                    }
+                    break;
+            }
+
+            entry = null;
+            return false;
         }
     }
 

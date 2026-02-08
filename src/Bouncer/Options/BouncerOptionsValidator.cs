@@ -10,13 +10,6 @@ public sealed class BouncerOptionsValidator : IValidateOptions<BouncerOptions>
         "deny"
     };
 
-    private static readonly HashSet<string> AllowedLogLevels = new(StringComparer.OrdinalIgnoreCase)
-    {
-        "none",
-        "denials-only",
-        "all"
-    };
-
     public ValidateOptionsResult Validate(string? name, BouncerOptions options)
     {
         var failures = new List<string>();
@@ -111,15 +104,9 @@ public sealed class BouncerOptionsValidator : IValidateOptions<BouncerOptions>
         }
         else
         {
-            if (!AllowedLogLevels.Contains(options.Logging.Level))
+            if (string.IsNullOrWhiteSpace(options.Logging.Path))
             {
-                failures.Add("logging.level must be 'none', 'denials-only', or 'all'");
-            }
-
-            if (!string.Equals(options.Logging.Level, "none", StringComparison.OrdinalIgnoreCase)
-                && string.IsNullOrWhiteSpace(options.Logging.Path))
-            {
-                failures.Add("logging.path is required when logging.level is not 'none'");
+                failures.Add("logging.path is required");
             }
         }
 
