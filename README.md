@@ -33,14 +33,16 @@ Key settings:
 - `ruleGroups`: enable/disable default rule sets by category (bash, git, secrets-exposure, production-risk, web).
 - `customRules`: add project-specific patterns (each with its own allow/deny action).
 - `llmFallback`: enable LLM-as-judge and configure providers.
-- `logging`: configure file log output (for example, `logging.path`).
-- `Logging`: standard `Microsoft.Extensions.Logging` section that controls categories (`Bouncer.Audit.Deny`, `Bouncer.Audit.Allow`).
+- `Logging:File:Path`: file log output path.
+- `Logging:LogLevel`: standard `Microsoft.Extensions.Logging` section that controls categories (`Bouncer.Audit.Deny`, `Bouncer.Audit.Allow`).
 
 Tier 1 includes allow rules for known-safe commands to keep routine calls out of the LLM fallback.
 
 Default filters are Error-only everywhere, `Bouncer.Audit.Deny` at Information, and `Bouncer.Audit.Allow` disabled. Override them in the `Logging` section of `.bouncer.json` if you want allow logs or different levels.
 
 File logs are JSON lines with these fields: `timestamp`, `level`, `category`, `message`, `state`, `scopes`, `eventId`, and `exception`.
+
+`bouncer init` writes a fully expanded config based on the embedded example so you can edit in place.
 
 ## LLM providers
 
@@ -49,6 +51,8 @@ Providers are resolved from env vars first, then an optional `apiKeyCommand`:
 - GitHub Models: `GITHUB_TOKEN`
 - OpenAI: `OPENAI_API_KEY`
 - Ollama: local endpoint `http://localhost:11434`
+
+If `GITHUB_TOKEN` is missing and no `apiKeyCommand` is configured for GitHub Models, Bouncer falls back to `gh auth token`.
 
 ## Exit codes
 

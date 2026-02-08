@@ -1,4 +1,3 @@
-using Bouncer.Options;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -19,12 +18,14 @@ public static class BouncerLoggingExtensions
             builder.AddFilter(AuditLogCategories.Allow, LogLevel.None);
             builder.AddConfiguration(configuration.GetSection("Logging"));
         });
+        services.AddOptions<FileLoggingOptions>()
+            .BindConfiguration(FileLoggingOptions.SectionName);
         services.AddSingleton<ILogFormatter, JsonLogFormatter>();
         services.AddSingleton<ILoggerProvider>(sp =>
         {
-            var options = sp.GetRequiredService<IOptions<BouncerOptions>>().Value;
+            var options = sp.GetRequiredService<IOptions<FileLoggingOptions>>().Value;
             var formatter = sp.GetRequiredService<ILogFormatter>();
-            return new FileLoggerProvider(options.Logging, formatter);
+            return new FileLoggerProvider(options, formatter);
         });
 
         return services;

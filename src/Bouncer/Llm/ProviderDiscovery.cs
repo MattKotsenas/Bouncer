@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Net.Http.Headers;
 using System.Text;
@@ -24,7 +25,7 @@ public static class ProviderDiscovery
             var selection = provider.Type.ToLowerInvariant() switch
             {
                 "anthropic" => TryCreateAnthropic(provider),
-                "github-models" => TryCreateOpenAi(provider, "GITHUB_TOKEN", GitHubModelsEndpoint),
+                "github-models" => TryCreateGitHubModels(provider),
                 "openai" => TryCreateOpenAi(provider, "OPENAI_API_KEY", provider.Endpoint),
                 "ollama" => TryCreateOllama(provider),
                 _ => null
@@ -68,6 +69,20 @@ public static class ProviderDiscovery
         string? endpointOverride)
     {
         var apiKey = ResolveApiKey(apiKeyEnvVar, provider.ApiKeyCommand);
+        return TryCreateOpenAiWithKey(provider, apiKey, endpointOverride);
+    }
+
+    private static LlmProviderSelection? TryCreateGitHubModels(LlmProviderOptions provider)
+    {
+        var apiKey = ResolveApiKey("GITHUB_TOKEN", provider.ApiKeyCommand, TryGetGitHubCliToken);
+        return TryCreateOpenAiWithKey(provider, apiKey, GitHubModelsEndpoint);
+    }
+
+    private static LlmProviderSelection? TryCreateOpenAiWithKey(
+        LlmProviderOptions provider,
+        string? apiKey,
+        string? endpointOverride)
+    {
         if (string.IsNullOrWhiteSpace(apiKey) || string.IsNullOrWhiteSpace(provider.Model))
         {
             return null;
@@ -120,7 +135,10 @@ public static class ProviderDiscovery
         }
     }
 
-    private static string? ResolveApiKey(string envVar, string? apiKeyCommand)
+    private static string? ResolveApiKey(
+        string envVar,
+        string? apiKeyCommand,
+        Func<string?>? fallback = null)
     {
         var value = Environment.GetEnvironmentVariable(envVar);
         if (!string.IsNullOrWhiteSpace(value))
@@ -130,10 +148,27 @@ public static class ProviderDiscovery
 
         if (string.IsNullOrWhiteSpace(apiKeyCommand))
         {
-            return null;
+            return fallback?.Invoke();
         }
 
         return ExecuteCommand(apiKeyCommand);
+    }
+
+    private static string? TryGetGitHubCliToken()
+    {
+        try
+        {
+            var token = ExecuteCommand("gh auth token");
+            return string.IsNullOrWhiteSpace(token) ? null : token;
+        }
+        catch (InvalidOperationException)
+        {
+            return null;
+        }
+        catch (Win32Exception)
+        {
+            return null;
+        }
     }
 
     private static string ExecuteCommand(string command)

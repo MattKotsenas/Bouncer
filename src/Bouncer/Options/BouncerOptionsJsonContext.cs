@@ -8,7 +8,6 @@ namespace Bouncer.Options;
 [JsonSerializable(typeof(CustomRuleOptions))]
 [JsonSerializable(typeof(LlmFallbackOptions))]
 [JsonSerializable(typeof(LlmProviderOptions))]
-[JsonSerializable(typeof(LoggingOptions))]
 public partial class BouncerOptionsJsonContext : JsonSerializerContext
 {
 }

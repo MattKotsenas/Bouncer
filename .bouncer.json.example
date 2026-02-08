@@ -14,13 +14,21 @@
     "maxTokens": 150,
     "confidenceThreshold": 0.7,
     "providerChain": [
-      { "type": "anthropic", "model": "claude-haiku-4-5-20251001", "timeoutSeconds": 2 },
-      { "type": "github-models", "model": "gpt-4o-mini", "timeoutSeconds": 2 },
-      { "type": "openai", "model": "gpt-4o-mini", "timeoutSeconds": 2 },
-      { "type": "ollama", "endpoint": "http://localhost:11434", "model": "llama3:8b", "timeoutSeconds": 3 }
+      { "type": "anthropic", "model": "claude-haiku-4-5-20251001", "timeoutSeconds": 2, "apiKeyCommand": null },
+      { "type": "github-models", "model": "gpt-4o-mini", "timeoutSeconds": 2, "apiKeyCommand": null },
+      { "type": "openai", "model": "gpt-4o-mini", "timeoutSeconds": 2, "apiKeyCommand": null },
+      { "type": "ollama", "endpoint": "http://localhost:11434", "model": "llama3:8b", "timeoutSeconds": 3, "apiKeyCommand": null }
     ]
   },
-  "logging": {
-    "path": ".bouncer/audit.log"
+  "Logging": {
+    "File": {
+      "Path": ".bouncer/audit.log"
+    },
+    "LogLevel": {
+      "Default": "Error",
+      "Bouncer.Audit.Deny": "Information",
+      "Bouncer.Audit.Allow": "None",
+      "Bouncer.Pipeline": "Warning"
+    }
   }
 }

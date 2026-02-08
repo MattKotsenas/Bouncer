@@ -1,5 +1,4 @@
 using System.Text;
-using Bouncer.Options;
 using Microsoft.Extensions.Logging;
 
 namespace Bouncer.Logging;
@@ -7,12 +6,12 @@ namespace Bouncer.Logging;
 public sealed class FileLoggerProvider : ILoggerProvider, ISupportExternalScope
 {
     private static readonly byte[] NewLine = Encoding.UTF8.GetBytes(Environment.NewLine);
-    private readonly LoggingOptions _options;
+    private readonly FileLoggingOptions _options;
     private readonly ILogFormatter _formatter;
     private readonly object _sync = new();
     private IExternalScopeProvider _scopeProvider = new LoggerExternalScopeProvider();
 
-    public FileLoggerProvider(LoggingOptions options, ILogFormatter formatter)
+    public FileLoggerProvider(FileLoggingOptions options, ILogFormatter formatter)
     {
         _options = options;
         _formatter = formatter;
@@ -33,14 +32,14 @@ public sealed class FileLoggerProvider : ILoggerProvider, ISupportExternalScope
     private sealed class FileLogger : ILogger
     {
         private readonly string _categoryName;
-        private readonly LoggingOptions _options;
+        private readonly FileLoggingOptions _options;
         private readonly ILogFormatter _formatter;
         private readonly object _sync;
         private readonly Func<IExternalScopeProvider> _scopeProviderAccessor;
 
         public FileLogger(
             string categoryName,
-            LoggingOptions options,
+            FileLoggingOptions options,
             ILogFormatter formatter,
             object sync,
             Func<IExternalScopeProvider> scopeProviderAccessor)

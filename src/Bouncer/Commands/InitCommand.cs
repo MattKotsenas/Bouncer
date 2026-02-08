@@ -1,12 +1,10 @@
-using System.Text.Json;
-using Bouncer.Options;
+using System.Reflection;
 
 namespace Bouncer.Commands;
 
 public static class InitCommand
 {
     private const string DefaultPath = ".bouncer.json";
-    private const string SchemaUrl = "https://raw.githubusercontent.com/.../bouncer-schema.json";
 
     public static async Task<int> ExecuteAsync(
         string? path,
@@ -21,17 +19,15 @@ public static class InitCommand
             return 1;
         }
 
-        var options = new BouncerOptions
-        {
-            Schema = SchemaUrl
-        };
+        var assembly = typeof(InitCommand).Assembly;
+        var resourceName = assembly
+            .GetManifestResourceNames()
+            .Single(name => name.EndsWith(".bouncer.json.example", StringComparison.OrdinalIgnoreCase));
+        await using var resourceStream = assembly.GetManifestResourceStream(resourceName)
+            ?? throw new InvalidOperationException("Embedded example config not found.");
 
         await using var stream = File.Create(outputPath);
-        await JsonSerializer.SerializeAsync(
-            stream,
-            options,
-            BouncerOptionsJsonContext.Default.BouncerOptions,
-            cancellationToken);
+        await resourceStream.CopyToAsync(stream, cancellationToken);
         await stream.FlushAsync(cancellationToken);
 
         output.WriteLine($"Wrote {outputPath}");

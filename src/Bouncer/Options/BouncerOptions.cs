@@ -24,9 +24,6 @@ public sealed class BouncerOptions
     [JsonPropertyName("llmFallback")]
     public LlmFallbackOptions LlmFallback { get; set; } = new();
 
-    [JsonPropertyName("logging")]
-    public LoggingOptions Logging { get; set; } = new();
-
     private static Dictionary<string, RuleGroupOptions> DefaultRuleGroups() =>
         new(StringComparer.OrdinalIgnoreCase)
         {
@@ -122,10 +119,4 @@ public sealed class LlmProviderOptions
 
     [JsonPropertyName("apiKeyCommand")]
     public string? ApiKeyCommand { get; set; }
-}
-
-public sealed class LoggingOptions
-{
-    [JsonPropertyName("path")]
-    public string Path { get; set; } = ".bouncer/audit.log";
 }

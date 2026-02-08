@@ -29,6 +29,7 @@
   <ItemGroup>
     <None Include="..\..\README.md" Pack="true" PackagePath="\" />
     <None Include="..\..\.bouncer.json.example" Pack="true" PackagePath="\" />
+    <EmbeddedResource Include="..\..\.bouncer.json.example" />
   </ItemGroup>
 
 </Project>

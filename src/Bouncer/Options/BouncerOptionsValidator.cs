@@ -98,18 +98,6 @@ public sealed class BouncerOptionsValidator : IValidateOptions<BouncerOptions>
             }
         }
 
-        if (options.Logging is null)
-        {
-            failures.Add("logging is required");
-        }
-        else
-        {
-            if (string.IsNullOrWhiteSpace(options.Logging.Path))
-            {
-                failures.Add("logging.path is required");
-            }
-        }
-
         return failures.Count == 0 ? ValidateOptionsResult.Success : ValidateOptionsResult.Fail(failures);
     }
 
