@@ -65,6 +65,23 @@ public sealed class RuleGroupBehaviorTests
         match.GroupName.Should().Be("bash");
     }
 
+    [TestMethod]
+    public void PowerShell_DeniesDestructiveRemove()
+    {
+        var engine = CreateEngine();
+        var input = new HookInput
+        {
+            ToolName = "powershell",
+            ToolInput = ToolInput.ForCommand("Remove-Item -Recurse -Force C:\\")
+        };
+
+        var match = engine.Evaluate(input);
+
+        match.Should().NotBeNull();
+        match!.Decision.Should().Be(PermissionDecision.Deny);
+        match.GroupName.Should().Be("powershell");
+    }
+
     private static RegexRuleEngine CreateEngine() =>
         new(OptionsFactory.Create(new BouncerOptions()));
 }

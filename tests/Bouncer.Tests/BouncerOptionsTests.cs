@@ -16,6 +16,7 @@ public sealed class BouncerOptionsTests
         options.DefaultAction.Should().Be("allow");
         options.RuleGroups.Should().ContainKeys(
             "bash",
+            "powershell",
             "git",
             "secrets-exposure",
             "production-risk",

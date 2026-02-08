@@ -46,6 +46,26 @@ public static partial class DefaultRuleRegexes
 
     public const string KubectlApplyNoDryRunPattern = @"\bkubectl\b\s+apply\b(?!.*--dry-run)";
 
+    public const string PowerShellRemoveItemRootPattern =
+        @"\bRemove-Item\b.*\s(-Recurse|-r)\b.*\s(-Force|-f)\b.*\s(""|')?" +
+        @"(?:[A-Za-z]:\\$|[A-Za-z]:\\(Windows|System32|Program\s+Files|Users)\b|/|\\)(?:""|')?";
+
+    public const string PowerShellRemoveItemSystemRootPattern =
+        @"\bRemove-Item\b.*\s(-Recurse|-r)\b.*\s(-Force|-f)\b.*\b(\$env:SystemRoot|\$env:WinDir)\b";
+
+    public const string PowerShellDiskWipePattern =
+        @"\b(Format-Volume|Clear-Disk|Initialize-Disk|Reset-PhysicalDisk)\b";
+
+    public const string PowerShellExecutionPolicyBypassPattern =
+        @"\bSet-ExecutionPolicy\b.*\b(Bypass|Unrestricted)\b";
+
+    public const string PowerShellInvokeExpressionPattern = @"\b(Invoke-Expression|iex)\b";
+
+    public const string PowerShellRegistryDeletePattern =
+        @"\breg\b\s+delete\b.*\b(HKLM|HKEY_LOCAL_MACHINE|HKCU|HKEY_CURRENT_USER)\b";
+
+    public const string PowerShellStopRestartPattern = @"\b(Stop-Computer|Restart-Computer)\b";
+
     public const string SafeBashInfoPattern =
         @"^\s*(ls|pwd|whoami|uname|date|id|which|echo)\b[^;&|<>$`]*$";
 
@@ -55,6 +75,13 @@ public static partial class DefaultRuleRegexes
     public const string SafeReadPathPattern =
         @"(^|[\\/]).+\.(md|txt|cs|csproj|sln|slnx|props|targets|json|yml|yaml|toml|xml|ini|config|editorconfig|gitignore)$" +
         @"|(^|[\\/])(readme|license)(\.[a-z0-9]+)?$";
+
+    public const string PowerShellSafeInfoPattern =
+        @"^\s*(Get-ChildItem|Get-Location|Get-Process|Get-Service|Get-Command|Get-Help|Get-Date|Get-Host|" +
+        @"Get-Item|Test-Path|Resolve-Path|Get-PSDrive|Get-PSVersionTable)\b[^;&|<>$`]*$";
+
+    public const string PowerShellSafeReadPattern =
+        @"^\s*(Get-Content|Select-String)\b[^;&|<>$`]*(?:" + SafeReadPathPattern + @")[^;&|<>$`]*$";
 
     public const string SafeNonEmptyPattern = @"^.+$";
 
@@ -111,6 +138,27 @@ public static partial class DefaultRuleRegexes
     [GeneratedRegex(KubectlApplyNoDryRunPattern, RegexOptions.IgnoreCase)]
     public static partial Regex KubectlApplyNoDryRun();
 
+    [GeneratedRegex(PowerShellRemoveItemRootPattern, RegexOptions.IgnoreCase)]
+    public static partial Regex PowerShellRemoveItemRoot();
+
+    [GeneratedRegex(PowerShellRemoveItemSystemRootPattern, RegexOptions.IgnoreCase)]
+    public static partial Regex PowerShellRemoveItemSystemRoot();
+
+    [GeneratedRegex(PowerShellDiskWipePattern, RegexOptions.IgnoreCase)]
+    public static partial Regex PowerShellDiskWipe();
+
+    [GeneratedRegex(PowerShellExecutionPolicyBypassPattern, RegexOptions.IgnoreCase)]
+    public static partial Regex PowerShellExecutionPolicyBypass();
+
+    [GeneratedRegex(PowerShellInvokeExpressionPattern, RegexOptions.IgnoreCase)]
+    public static partial Regex PowerShellInvokeExpression();
+
+    [GeneratedRegex(PowerShellRegistryDeletePattern, RegexOptions.IgnoreCase)]
+    public static partial Regex PowerShellRegistryDelete();
+
+    [GeneratedRegex(PowerShellStopRestartPattern, RegexOptions.IgnoreCase)]
+    public static partial Regex PowerShellStopRestart();
+
     [GeneratedRegex(SafeBashInfoPattern, RegexOptions.IgnoreCase)]
     public static partial Regex SafeBashInfo();
 
@@ -119,6 +167,12 @@ public static partial class DefaultRuleRegexes
 
     [GeneratedRegex(SafeReadPathPattern, RegexOptions.IgnoreCase)]
     public static partial Regex SafeReadPath();
+
+    [GeneratedRegex(PowerShellSafeInfoPattern, RegexOptions.IgnoreCase)]
+    public static partial Regex PowerShellSafeInfo();
+
+    [GeneratedRegex(PowerShellSafeReadPattern, RegexOptions.IgnoreCase)]
+    public static partial Regex PowerShellSafeRead();
 
     [GeneratedRegex(SafeNonEmptyPattern, RegexOptions.IgnoreCase)]
     public static partial Regex SafeNonEmpty();

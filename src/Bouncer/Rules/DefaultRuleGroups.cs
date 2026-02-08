@@ -57,6 +57,12 @@ public static class DefaultRuleGroups
                     DefaultRuleRegexes.SafeBashInfo)
             ]),
         new RuleGroupDefinition(
+            "powershell",
+            [
+                ..CreatePowerShellRules("powershell"),
+                ..CreatePowerShellRules("pwsh")
+            ]),
+        new RuleGroupDefinition(
             "git",
             [
                 new RuleDefinition(
@@ -248,5 +254,81 @@ public static class DefaultRuleGroups
                     "Known safe web search",
                     DefaultRuleRegexes.SafeNonEmpty)
             ])
+    ];
+
+    private static IEnumerable<RuleDefinition> CreatePowerShellRules(string toolName) =>
+    [
+        new RuleDefinition(
+            $"{toolName}-remove-item-root",
+            toolName,
+            ToolField.Command,
+            DefaultRuleRegexes.PowerShellRemoveItemRootPattern,
+            "deny",
+            "Destructive recursive delete",
+            DefaultRuleRegexes.PowerShellRemoveItemRoot),
+        new RuleDefinition(
+            $"{toolName}-remove-item-systemroot",
+            toolName,
+            ToolField.Command,
+            DefaultRuleRegexes.PowerShellRemoveItemSystemRootPattern,
+            "deny",
+            "System directory delete",
+            DefaultRuleRegexes.PowerShellRemoveItemSystemRoot),
+        new RuleDefinition(
+            $"{toolName}-disk-wipe",
+            toolName,
+            ToolField.Command,
+            DefaultRuleRegexes.PowerShellDiskWipePattern,
+            "deny",
+            "Disk formatting or wipe",
+            DefaultRuleRegexes.PowerShellDiskWipe),
+        new RuleDefinition(
+            $"{toolName}-execution-policy-bypass",
+            toolName,
+            ToolField.Command,
+            DefaultRuleRegexes.PowerShellExecutionPolicyBypassPattern,
+            "deny",
+            "Execution policy bypass",
+            DefaultRuleRegexes.PowerShellExecutionPolicyBypass),
+        new RuleDefinition(
+            $"{toolName}-invoke-expression",
+            toolName,
+            ToolField.Command,
+            DefaultRuleRegexes.PowerShellInvokeExpressionPattern,
+            "deny",
+            "Dynamic expression execution",
+            DefaultRuleRegexes.PowerShellInvokeExpression),
+        new RuleDefinition(
+            $"{toolName}-registry-delete",
+            toolName,
+            ToolField.Command,
+            DefaultRuleRegexes.PowerShellRegistryDeletePattern,
+            "deny",
+            "Registry delete",
+            DefaultRuleRegexes.PowerShellRegistryDelete),
+        new RuleDefinition(
+            $"{toolName}-stop-restart",
+            toolName,
+            ToolField.Command,
+            DefaultRuleRegexes.PowerShellStopRestartPattern,
+            "deny",
+            "System shutdown or restart",
+            DefaultRuleRegexes.PowerShellStopRestart),
+        new RuleDefinition(
+            $"{toolName}-safe-info",
+            toolName,
+            ToolField.Command,
+            DefaultRuleRegexes.PowerShellSafeInfoPattern,
+            "allow",
+            "Known safe PowerShell command",
+            DefaultRuleRegexes.PowerShellSafeInfo),
+        new RuleDefinition(
+            $"{toolName}-safe-read",
+            toolName,
+            ToolField.Command,
+            DefaultRuleRegexes.PowerShellSafeReadPattern,
+            "allow",
+            "Known safe PowerShell file read",
+            DefaultRuleRegexes.PowerShellSafeRead)
     ];
 }

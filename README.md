@@ -30,7 +30,7 @@ Bouncer loads `.bouncer.json` from the current directory. See `.bouncer.json.exa
 
 Key settings:
 - `defaultAction`: what to do when no rule or LLM decision is available (`allow` or `deny`).
-- `ruleGroups`: enable/disable default rule sets by category (bash, git, secrets-exposure, production-risk, web).
+- `ruleGroups`: enable/disable default rule sets by category (bash, powershell, git, secrets-exposure, production-risk, web).
 - `customRules`: add project-specific patterns (each with its own allow/deny action).
 - `llmFallback`: enable LLM-as-judge and configure providers.
 - `Logging:File:Path`: file log output path.

@@ -14,6 +14,7 @@ public sealed class DefaultRuleGroupsTests
         groupNames.Should().BeEquivalentTo(
             [
                 "bash",
+                "powershell",
                 "git",
                 "secrets-exposure",
                 "production-risk",
@@ -40,6 +41,18 @@ public sealed class DefaultRuleGroupsTests
         var forceRule = group.Rules.Single(rule => rule.Name == "git-force-push");
 
         forceRule.Pattern.Should().Contain("--force-with-lease");
+    }
+
+    [TestMethod]
+    public void PowerShell_RulesTargetPowerShellCommands()
+    {
+        var group = DefaultRuleGroups.All.Single(g => g.Name == "powershell");
+
+        group.Rules.Should().AllSatisfy(rule =>
+        {
+            rule.ToolName.Should().BeOneOf("powershell", "pwsh");
+            rule.Field.Should().Be(ToolField.Command);
+        });
     }
 
     [TestMethod]

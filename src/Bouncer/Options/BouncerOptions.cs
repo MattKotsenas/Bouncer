@@ -28,6 +28,7 @@ public sealed class BouncerOptions
         new(StringComparer.OrdinalIgnoreCase)
         {
             ["bash"] = new RuleGroupOptions(),
+            ["powershell"] = new RuleGroupOptions(),
             ["git"] = new RuleGroupOptions(),
             ["secrets-exposure"] = new RuleGroupOptions(),
             ["production-risk"] = new RuleGroupOptions(),
