@@ -33,12 +33,14 @@ Key settings:
 - `ruleGroups`: enable/disable default rule sets by category (bash, git, secrets-exposure, production-risk, web).
 - `customRules`: add project-specific patterns (each with its own allow/deny action).
 - `llmFallback`: enable LLM-as-judge and configure providers.
-- `logging`: configure audit log output (for example, `logging.path`).
-- `Logging`: standard `Microsoft.Extensions.Logging` section that controls audit categories (`Bouncer.Audit.Deny`, `Bouncer.Audit.Allow`).
+- `logging`: configure file log output (for example, `logging.path`).
+- `Logging`: standard `Microsoft.Extensions.Logging` section that controls categories (`Bouncer.Audit.Deny`, `Bouncer.Audit.Allow`).
 
 Tier 1 includes allow rules for known-safe commands to keep routine calls out of the LLM fallback.
 
 Default filters are Error-only everywhere, `Bouncer.Audit.Deny` at Information, and `Bouncer.Audit.Allow` disabled. Override them in the `Logging` section of `.bouncer.json` if you want allow logs or different levels.
+
+File logs are JSON lines with these fields: `timestamp`, `level`, `category`, `message`, `state`, `scopes`, `eventId`, and `exception`.
 
 ## LLM providers
 

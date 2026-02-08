@@ -19,10 +19,12 @@ public static class BouncerLoggingExtensions
             builder.AddFilter(AuditLogCategories.Allow, LogLevel.None);
             builder.AddConfiguration(configuration.GetSection("Logging"));
         });
+        services.AddSingleton<ILogFormatter, JsonLogFormatter>();
         services.AddSingleton<ILoggerProvider>(sp =>
         {
             var options = sp.GetRequiredService<IOptions<BouncerOptions>>().Value;
-            return new FileAuditLoggerProvider(options.Logging);
+            var formatter = sp.GetRequiredService<ILogFormatter>();
+            return new FileLoggerProvider(options.Logging, formatter);
         });
 
         return services;

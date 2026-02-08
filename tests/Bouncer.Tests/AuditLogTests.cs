@@ -32,7 +32,12 @@ public sealed class AuditLogTests
         await pipeline.EvaluateAsync(HookInput.Bash("rm -rf /"));
 
         var entries = ReadEntries(path);
-        entries.Should().ContainSingle(entry => entry.Decision == PermissionDecision.Deny);
+        entries.Should().ContainSingle();
+        var entry = entries.Single();
+        entry.GetProperty("category").GetString().Should().Be(AuditLogCategories.Deny);
+        entry.GetProperty("level").GetString().Should().Be(LogLevel.Information.ToString());
+        entry.GetProperty("state").GetProperty("Decision").GetString()
+            .Should().Be(PermissionDecision.Deny.ToString());
     }
 
     [TestMethod]
@@ -73,7 +78,12 @@ public sealed class AuditLogTests
         await pipeline.EvaluateAsync(HookInput.Bash("echo ok"));
 
         var entries = ReadEntries(path);
-        entries.Should().ContainSingle(entry => entry.Decision == PermissionDecision.Allow);
+        entries.Should().ContainSingle();
+        var entry = entries.Single();
+        entry.GetProperty("category").GetString().Should().Be(AuditLogCategories.Allow);
+        entry.GetProperty("level").GetString().Should().Be(LogLevel.Information.ToString());
+        entry.GetProperty("state").GetProperty("Decision").GetString()
+            .Should().Be(PermissionDecision.Allow.ToString());
     }
 
     private static IBouncerPipeline CreatePipeline(BouncerOptions options, ILoggerFactory loggerFactory)
@@ -90,22 +100,27 @@ public sealed class AuditLogTests
             builder.AddFilter((category, level) => level >= LogLevel.Error);
             builder.AddFilter(AuditLogCategories.Deny, LogLevel.Information);
             builder.AddFilter(AuditLogCategories.Allow, allowLevel);
-            builder.AddProvider(new FileAuditLoggerProvider(options.Logging));
+            builder.AddProvider(new FileLoggerProvider(options.Logging, new JsonLogFormatter()));
         });
 
-    private static List<AuditEntry> ReadEntries(string path)
+    private static List<JsonElement> ReadEntries(string path)
     {
         if (!File.Exists(path))
         {
             return [];
         }
 
-        var entries = File.ReadAllLines(path)
-            .Where(line => !string.IsNullOrWhiteSpace(line))
-            .Select(line => JsonSerializer.Deserialize<AuditEntry>(line))
-            .Where(entry => entry is not null)
-            .Select(entry => entry!)
-            .ToList();
+        var entries = new List<JsonElement>();
+        foreach (var line in File.ReadAllLines(path))
+        {
+            if (string.IsNullOrWhiteSpace(line))
+            {
+                continue;
+            }
+
+            using var document = JsonDocument.Parse(line);
+            entries.Add(document.RootElement.Clone());
+        }
 
         File.Delete(path);
         return entries;

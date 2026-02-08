@@ -28,7 +28,7 @@ Tier 1 includes both deny rules and allow rules (known-safe commands). Allow rul
 We considered a bloom filter as a Tier 0 optimization. At the current rule set size (~50-100 patterns), a bloom filter saves <0.1ms. The complexity is not worth it today. If rule sets grow to thousands, revisit.
 
 ## Why DI in a 25ms process
-Dependency injection enables clean swapping of rule engines, judges, and audit logs in tests. With AOT, container build cost is ~1-3ms. That tradeoff is worth the testability and composability.
+Dependency injection enables clean swapping of rule engines, judges, and loggers in tests. With AOT, container build cost is ~1-3ms. That tradeoff is worth the testability and composability.
 
 ## Default action (fail-open)
 Bouncer is a safety net for catastrophic commands, not a security boundary. If Bouncer crashes, fails to parse input, or has no provider available, blocking the tool call can be worse than letting it through. The default is fail-open (`defaultAction: allow`), but it is configurable to fail-closed (`defaultAction: deny`) for CI or shared infra.

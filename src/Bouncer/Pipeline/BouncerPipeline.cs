@@ -9,7 +9,7 @@ using Microsoft.Extensions.Options;
 
 namespace Bouncer.Pipeline;
 
-public sealed class BouncerPipeline : IBouncerPipeline
+public sealed partial class BouncerPipeline : IBouncerPipeline
 {
     private readonly IRuleEngine _ruleEngine;
     private readonly ILlmJudge _llmJudge;
@@ -135,14 +135,22 @@ public sealed class BouncerPipeline : IBouncerPipeline
         }
 
         var toolInputJson = JsonSerializer.Serialize(input.ToolInput, BouncerJsonContext.Default.ToolInput);
-        var entry = new AuditEntry(
-            DateTimeOffset.UtcNow,
-            input.ToolName,
-            toolInputJson,
-            result.Decision,
-            result.Tier,
-            result.Reason);
+        Log.AuditDecision(logger, input.ToolName, toolInputJson, result.Decision, result.Tier, result.Reason);
+    }
 
-        logger.LogInformation("Audit {Entry}", entry);
+    private static partial class Log
+    {
+        [LoggerMessage(
+            EventId = 1,
+            EventName = "Audit",
+            Level = LogLevel.Information,
+            Message = "Audit {ToolName} {ToolInput} {Decision} {Tier} {Reason}")]
+        public static partial void AuditDecision(
+            ILogger logger,
+            string toolName,
+            string toolInput,
+            PermissionDecision decision,
+            EvaluationTier tier,
+            string reason);
     }
 }
