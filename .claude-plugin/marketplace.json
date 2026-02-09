@@ -1,0 +1,15 @@
+{
+  "name": "bouncer",
+  "owner": {
+    "name": "MattKotsenas",
+    "url": "https://github.com/MattKotsenas"
+  },
+  "plugins": [
+    {
+      "name": "bouncer",
+      "source": "./",
+      "description": "PreToolUse hook that blocks dangerous tool calls with fast rules and LLM fallback.",
+      "version": "1.0.0"
+    }
+  ]
+}
