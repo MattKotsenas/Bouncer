@@ -12,5 +12,18 @@
     "pretooluse",
     "copilot",
     "claude"
-  ]
+  ],
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/scripts/bouncer-hook.sh\""
+          }
+        ]
+      }
+    ]
+  }
 }

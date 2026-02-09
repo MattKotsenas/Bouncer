@@ -14,3 +14,8 @@ when using git height-based versions.
 
 NBGV still calculates `VersionHeight`, but we do not use it for the plugin version. It is not the patch number unless
 you explicitly reconfigure NBGV to use height-based versions.
+
+## Plugin hooks
+
+The plugin has two hook files that must be kept in sync — one for Claude Code and one for Copilot CLI. If you change
+hook behavior, update both. See the "Plugin hook wiring" section in [ARCHITECTURE.md](docs/ARCHITECTURE.md) for why.

@@ -82,6 +82,22 @@ public static class DefaultRuleGroups
                     "Bouncer config modification",
                     DefaultRuleRegexes.BouncerConfigPath),
                 new RuleDefinition(
+                    "bouncer-hook-shim-write",
+                    "write",
+                    ToolField.Path,
+                    DefaultRuleRegexes.BouncerHookShimPattern,
+                    "deny",
+                    "Bouncer hook shim modification",
+                    DefaultRuleRegexes.BouncerHookShim),
+                new RuleDefinition(
+                    "bouncer-hook-shim-edit",
+                    "edit",
+                    ToolField.Path,
+                    DefaultRuleRegexes.BouncerHookShimPattern,
+                    "deny",
+                    "Bouncer hook shim modification",
+                    DefaultRuleRegexes.BouncerHookShim),
+                new RuleDefinition(
                     "secret-file-write",
                     "write",
                     ToolField.Path,

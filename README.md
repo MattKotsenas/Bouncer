@@ -17,9 +17,11 @@ bouncer test bash "rm -rf /"
 
 Configure your agent's PreToolUse hook to run `bouncer` (it reads the tool JSON from stdin and writes a decision to stdout).
 
-## Plugin install (Claude Code / Copilot CLI)
+## Plugin install
 
-Bouncer ships a plugin manifest so you can install it from a marketplace. The plugin runs `bouncer` on every tool call, so the CLI must be on your PATH.
+Bouncer ships as a plugin for both Claude Code and GitHub Copilot CLI. Installing the plugin automatically wires `bouncer` as a PreToolUse hook on every tool call. If `bouncer` isn't on your PATH, the hook degrades gracefully — tool calls are allowed with a warning on stderr.
+
+First, install the bouncer CLI as a global tool:
 
 ```bash
 dotnet tool install --global bouncer --add-source https://f.feedz.io/matt-kotsenas/bouncer/nuget/index.json
@@ -32,14 +34,41 @@ claude plugin marketplace add <agent-plugins-source>
 claude plugin install bouncer@agent-plugins
 ```
 
+Restart Claude Code after install and run `bouncer init` in each project to create `.bouncer.json`.
+
 ### Copilot CLI
 
+As of Copilot CLI v0.0.406, plugin hooks require the `--experimental` flag.
+
 ```bash
-copilot plugin marketplace add <agent-plugins-source>
-copilot plugin install bouncer@agent-plugins
+copilot plugin install <plugin-source>
+copilot --experimental  # hooks only fire with this flag
 ```
 
-Restart the CLI after install and run `bouncer init` in each project to create `.bouncer.json`.
+Alternatively, you can wire hooks manually via `.github/hooks/` in your repository:
+
+```bash
+mkdir -p .github/hooks
+```
+
+Create `.github/hooks/bouncer.json`:
+
+```json
+{
+  "version": 1,
+  "hooks": {
+    "preToolUse": [
+      {
+        "type": "command",
+        "bash": "bouncer",
+        "powershell": "bouncer"
+      }
+    ]
+  }
+}
+```
+
+Run `bouncer init` in each project to create `.bouncer.json`.
 
 ## Commands
 

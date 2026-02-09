@@ -20,6 +20,13 @@ A normal .NET CLI tool often spends 150-300ms on startup (JIT, assembly loading)
 
 Tradeoff: no runtime reflection. This is why Bouncer relies on source generators for JSON and configuration binding.
 
+## Current packaging: dotnet tool (framework-dependent)
+Bouncer is currently distributed as a `dotnet tool` via `dotnet tool install`. This makes installation and updates trivial, but it is framework-dependent — users need the .NET 10 runtime installed, and `PublishAot` has no effect on tool packages. In practice, startup is ~150-300ms (JIT) rather than the ~15ms AOT target above.
+
+The codebase is designed for AOT from day one (source-generated JSON, source-generated regex, no reflection). When the project moves to native AOT binary distribution (e.g. per-RID binaries on GitHub Releases), the performance budget targets above will apply with no code changes required.
+
+Because `dotnet tool install` respects the project-level `global.json`, Bouncer should be installed as a **global tool** (`dotnet tool install --global`) to avoid conflicts with projects that pin to an older SDK version.
+
 ## Two-tier decision engine
 Tier 1 is a source-generated-regex rule engine. It is deterministic and sub-millisecond. Tier 2 is an LLM-as-judge for ambiguous inputs.
 
@@ -40,6 +47,25 @@ Bouncer is a safety net for catastrophic commands, not a security boundary. If B
 - Output: JSON on stdout with `permissionDecision` and `permissionDecisionReason`
 - Exit code: `0` allow, `2` deny
 - Malformed input: handled via `defaultAction` (fail-open/closed)
+
+## Plugin hook wiring
+
+Bouncer ships as a plugin for both Claude Code and GitHub Copilot CLI. Both support plugins with hooks, but their hook formats are incompatible — a single hooks file cannot work for both.
+
+**Claude Code** uses PascalCase event names, matcher groups, and a `command` key. It strictly validates the hooks object and rejects the entire file if it encounters an unknown event name.
+
+**Copilot CLI** (as of v0.0.406) uses camelCase event names, a flat hook array, and separate `bash`/`powershell` keys. It ignores unknown keys. Plugin hooks require the `--experimental` flag.
+
+Because Claude Code rejects unknown keys, a combined file is not possible. Instead, the plugin uses two files:
+
+| File | Format | Consumer |
+| --- | --- | --- |
+| `plugins/bouncer/.claude-plugin/plugin.json` | Inline hooks (PascalCase, `command` key) | Claude Code |
+| `plugins/bouncer/hooks/hooks.json` | Separate file (camelCase, `bash`/`powershell` keys) | Copilot CLI |
+
+Claude Code reads inline hooks from `plugin.json` and ignores `hooks/hooks.json` when inline hooks are present. Copilot CLI reads `hooks/hooks.json` and ignores inline hooks in `plugin.json`. Both files call the same shim scripts in `plugins/bouncer/scripts/`.
+
+The shims (`bouncer-hook.sh`, `bouncer-hook.ps1`) check if `bouncer` is on PATH. If found, stdin is forwarded and the exit code is passed through. If missing, the shim exits 0 (allow) and writes a warning to stderr. This lets the plugin be installed before the CLI tool without breaking sessions.
 
 ## LLM fallback strategy
 A configurable provider chain is used. The first available provider wins.

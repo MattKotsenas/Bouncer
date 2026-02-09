@@ -36,6 +36,8 @@ public static partial class DefaultRuleRegexes
 
     public const string BouncerConfigPathPattern = @"(^|[\\/])\.bouncer\.json$";
 
+    public const string BouncerHookShimPattern = @"(^|[\\/])bouncer-hook\.(sh|ps1)$";
+
     public const string WebFetchPastePattern =
         @"(?i)https?://(pastebin\.com|gist\.github\.com|hastebin\.com|pastie\.org)";
 
@@ -121,6 +123,9 @@ public static partial class DefaultRuleRegexes
 
     [GeneratedRegex(BouncerConfigPathPattern, RegexOptions.IgnoreCase)]
     public static partial Regex BouncerConfigPath();
+
+    [GeneratedRegex(BouncerHookShimPattern, RegexOptions.IgnoreCase)]
+    public static partial Regex BouncerHookShim();
 
     [GeneratedRegex(SecretCommandPattern, RegexOptions.IgnoreCase)]
     public static partial Regex SecretCommand();

@@ -1,4 +1,0 @@
-- [] Can log-level and enabled be collapsed into a single concept via log-level `none`
-- [] Package as a plugin with required metadata -- do we need a marketplace here?
-- [] We need a set of known safe rules to prevent calling the LLM very often
-- [] Replace IAuditLog with ILogger, but keep the user-centric log level via categories

@@ -33,9 +33,9 @@
     <EmbeddedResource Include="$(RepositoryRoot).bouncer.json.example" />
   </ItemGroup>
 
-  <Target Name="StampPluginVersion" AfterTargets="BeforePack" Condition="Exists('$(RepositoryRoot).claude-plugin\plugin.json')">
+  <Target Name="StampPluginVersion" AfterTargets="BeforePack" Condition="Exists('$(RepositoryRoot)plugins\bouncer\.claude-plugin\plugin.json')">
     <PropertyGroup>
-      <PluginJsonPath>$(RepositoryRoot).claude-plugin\plugin.json</PluginJsonPath>
+      <PluginJsonPath>$(RepositoryRoot)plugins\bouncer\.claude-plugin\plugin.json</PluginJsonPath>
       <PluginVersion Condition="'$(PackageVersion)' != ''">$(PackageVersion)</PluginVersion>
       <PluginVersion Condition="'$(PluginVersion)' == ''">$(Version)</PluginVersion>
     </PropertyGroup>
