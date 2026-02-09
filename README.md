@@ -5,7 +5,7 @@ Bouncer is a PreToolUse hook that blocks dangerous tool calls in Claude Code or 
 ## Install
 
 ```bash
-dotnet tool install --global bouncer
+dotnet tool install --global bouncer --add-source https://f.feedz.io/matt-kotsenas/bouncer/nuget/index.json
 ```
 
 ## Quick start
@@ -22,7 +22,7 @@ Configure your agent's PreToolUse hook to run `bouncer` (it reads the tool JSON 
 Bouncer ships a plugin manifest so you can install it from a marketplace. The plugin runs `bouncer` on every tool call, so the CLI must be on your PATH.
 
 ```bash
-dotnet tool install --global bouncer
+dotnet tool install --global bouncer --add-source https://f.feedz.io/matt-kotsenas/bouncer/nuget/index.json
 ```
 
 ### Claude Code
