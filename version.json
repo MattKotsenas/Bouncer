@@ -1,0 +1,10 @@
+{
+  "version": "1.0.0",
+  "nugetPackageVersion": {
+    "semVer": 2,
+    "precision": "build"
+  },
+  "publicReleaseRefSpec": [
+    "^refs/heads/main$"
+  ]
+}

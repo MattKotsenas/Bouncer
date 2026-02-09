@@ -5,6 +5,7 @@
     <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <EnableConfigurationBindingGenerator>true</EnableConfigurationBindingGenerator>
     <PublishAot>true</PublishAot>
     <PackAsTool>true</PackAsTool>
     <ToolCommandName>bouncer</ToolCommandName>
@@ -27,9 +28,25 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="..\..\README.md" Pack="true" PackagePath="\" />
-    <None Include="..\..\.bouncer.json.example" Pack="true" PackagePath="\" />
-    <EmbeddedResource Include="..\..\.bouncer.json.example" />
+    <None Include="$(RepositoryRoot)README.md" Pack="true" PackagePath="\" />
+    <None Include="$(RepositoryRoot).bouncer.json.example" Pack="true" PackagePath="\" />
+    <EmbeddedResource Include="$(RepositoryRoot).bouncer.json.example" />
   </ItemGroup>
+
+  <Target Name="StampPluginVersion" AfterTargets="BeforePack" Condition="Exists('$(RepositoryRoot).claude-plugin\plugin.json')">
+    <PropertyGroup>
+      <PluginJsonPath>$(RepositoryRoot).claude-plugin\plugin.json</PluginJsonPath>
+      <PluginVersion Condition="'$(PackageVersion)' != ''">$(PackageVersion)</PluginVersion>
+      <PluginVersion Condition="'$(PluginVersion)' == ''">$(Version)</PluginVersion>
+    </PropertyGroup>
+    <ReadLinesFromFile File="$(PluginJsonPath)">
+      <Output TaskParameter="Lines" ItemName="PluginJsonLines" />
+    </ReadLinesFromFile>
+    <PropertyGroup>
+      <PluginJsonContent>@(PluginJsonLines, '\n')</PluginJsonContent>
+      <PluginJsonUpdated>$([System.Text.RegularExpressions.Regex]::Replace('$(PluginJsonContent)', '\"version\"\\s*:\\s*\"[^\"]+\"', '\"version\": \"$(PluginVersion)\"'))</PluginJsonUpdated>
+    </PropertyGroup>
+    <WriteLinesToFile File="$(PluginJsonPath)" Lines="$(PluginJsonUpdated)" Overwrite="true" Encoding="UTF8" />
+  </Target>
 
 </Project>

@@ -1,10 +1,6 @@
 <Project>
   <PropertyGroup>
-    <TargetFramework>net10.0</TargetFramework>
-    <LangVersion>latest</LangVersion>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
-    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
-    <EnableConfigurationBindingGenerator>true</EnableConfigurationBindingGenerator>
+    <RepositoryRoot>$(MSBuildThisFileDirectory)</RepositoryRoot>
+    <ArtifactsPath>$(RepositoryRoot)artifacts\</ArtifactsPath>
   </PropertyGroup>
 </Project>

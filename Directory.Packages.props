@@ -1,4 +1,7 @@
 <Project>
+  <PropertyGroup>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+  </PropertyGroup>
   <ItemGroup>
     <PackageVersion Include="BenchmarkDotNet" Version="0.15.8" />
     <PackageVersion Include="FluentAssertions" Version="7.0.0" />
@@ -14,5 +17,11 @@
     <PackageVersion Include="Microsoft.Extensions.Options" Version="10.0.2" />
     <PackageVersion Include="MSTest" Version="4.0.1" />
     <PackageVersion Include="OllamaSharp" Version="5.4.16" />
+  </ItemGroup>
+  <ItemGroup>
+    <GlobalPackageReference Include="Nerdbank.GitVersioning"
+                            Version="3.9.50"
+                            IncludeAssets="Runtime;Build;Native;contentFiles;Analyzers;BuildTransitive"
+                            PrivateAssets="All" />
   </ItemGroup>
 </Project>

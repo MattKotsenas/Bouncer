@@ -1,0 +1,76 @@
+name: ci
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check version.json and enforce bump policy
+        id: version
+        shell: bash
+        run: |
+          set -euo pipefail
+          event="${{ github.event_name }}"
+          if [[ "$event" == "pull_request" ]]; then
+            base="${{ github.event.pull_request.base.sha }}"
+          else
+            base="${{ github.event.before }}"
+          fi
+          head="${{ github.sha }}"
+          if [[ "$base" == "0000000000000000000000000000000000000000" ]]; then
+            changed="$(git ls-tree --name-only -r "$head")"
+          else
+            changed="$(git diff --name-only "$base" "$head")"
+          fi
+          version_changed="false"
+          if echo "$changed" | grep -q '^version\.json$'; then
+            version_changed="true"
+          fi
+          echo "version_changed=$version_changed" >> "$GITHUB_OUTPUT"
+          shipping_changes="$(echo "$changed" | grep -E '^(src/|hooks/|\.claude-plugin/|Directory\.Build\.props|Directory\.Packages\.props|global\.json|nuget\.config|\.config/dotnet-tools\.json|src/Bouncer/Bouncer\.csproj)$' || true)"
+          if [[ "$event" == "pull_request" && -n "$shipping_changes" && "$version_changed" == "false" ]]; then
+            echo "Version bump required: update version.json in this PR." >&2
+            echo "Fix: bump version.json (e.g., 1.2.3 -> 1.2.4) and include it in this PR." >&2
+            echo "See CONTRIBUTING.md (Versioning) for details." >&2
+            echo "Detected shipping changes:" >&2
+            echo "$shipping_changes" >&2
+            exit 1
+          fi
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+
+      - name: Restore tools
+        run: dotnet tool restore
+
+      - name: Restore
+        run: dotnet restore
+
+      - name: Build
+        run: dotnet build -c Release --no-restore
+
+      - name: Test
+        run: dotnet test -c Release --no-build
+
+      - name: Pack
+        if: github.ref == 'refs/heads/main' && steps.version.outputs.version_changed == 'true'
+        run: dotnet pack -c Release --no-build
+
+      - name: Publish package
+        if: github.ref == 'refs/heads/main' && steps.version.outputs.version_changed == 'true'
+        env:
+          FEEDZ_NUGET_SOURCE: ${{ secrets.FEEDZ_NUGET_SOURCE }}
+          FEEDZ_API_KEY: ${{ secrets.FEEDZ_API_KEY }}
+        run: dotnet nuget push "artifacts/packages/*.nupkg" --source "https://f.feedz.io/matt-kotsenas/bouncer/nuget/index.json" --api-key "$FEEDZ_API_KEY" --skip-duplicate
