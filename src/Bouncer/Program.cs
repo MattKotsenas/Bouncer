@@ -1,3 +1,4 @@
+using System.Reflection;
 using Bouncer;
 using Bouncer.Commands;
 using Bouncer.Llm;
@@ -17,7 +18,11 @@ if (args.Length > 0 && args[0].Equals("init", StringComparison.OrdinalIgnoreCase
 
 if (args.Length > 0 && (args[0] == "--version" || args[0] == "-v"))
 {
-    Console.Out.WriteLine(typeof(Bouncer.Commands.InitCommand).Assembly.GetName().Version?.ToString(3) ?? "unknown");
+    var assembly = typeof(Bouncer.Commands.InitCommand).Assembly;
+    var version = assembly.GetCustomAttribute<System.Reflection.AssemblyInformationalVersionAttribute>()?.InformationalVersion
+        ?? assembly.GetName().Version?.ToString(3)
+        ?? "unknown";
+    Console.Out.WriteLine(version);
     return 0;
 }
 

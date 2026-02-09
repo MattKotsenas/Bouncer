@@ -83,6 +83,8 @@ public sealed partial class BouncerPipeline : IBouncerPipeline
 
         using (document)
         {
+            Log.RawHookInput(_pipelineLogger, document.RootElement.ToString());
+
             var adapter = _adapterFactory.Create(document.RootElement);
             HookInput? hookInput;
             try
@@ -144,8 +146,6 @@ public sealed partial class BouncerPipeline : IBouncerPipeline
     private static partial class Log
     {
         [LoggerMessage(
-            EventId = 1,
-            EventName = "Audit",
             Level = LogLevel.Information,
             Message = "Audit {ToolName} {ToolInput} {Decision} {Tier} {Reason}")]
         public static partial void AuditDecision(
@@ -157,15 +157,16 @@ public sealed partial class BouncerPipeline : IBouncerPipeline
             string reason);
 
         [LoggerMessage(
-            EventId = 2,
-            EventName = "InvalidHookInput",
+            Level = LogLevel.Debug,
+            Message = "Hook input: {RawJson}")]
+        public static partial void RawHookInput(ILogger logger, string rawJson);
+
+        [LoggerMessage(
             Level = LogLevel.Warning,
             Message = "Failed to parse hook input")]
         public static partial void InvalidHookInput(ILogger logger, Exception? exception);
 
         [LoggerMessage(
-            EventId = 3,
-            EventName = "MissingHookInput",
             Level = LogLevel.Warning,
             Message = "Hook input was null or empty")]
         public static partial void MissingHookInput(ILogger logger);
