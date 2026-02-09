@@ -89,10 +89,10 @@ Because Claude Code rejects unknown keys, a combined file is not possible. Inste
 
 | File | Format | Consumer |
 | --- | --- | --- |
-| `plugins/bouncer/.claude-plugin/plugin.json` | Inline hooks (PascalCase, `command` key) | Claude Code |
-| `plugins/bouncer/hooks/hooks.json` | Separate file (camelCase, `bash`/`powershell` keys) | Copilot CLI |
+| `.claude-plugin/plugin.json` | Inline hooks (PascalCase, `command` key) | Claude Code |
+| `hooks/hooks.json` | Separate file (camelCase, `bash`/`powershell` keys) | Copilot CLI |
 
-Claude Code reads inline hooks from `plugin.json` and ignores `hooks/hooks.json` when inline hooks are present. Copilot CLI reads `hooks/hooks.json` and ignores inline hooks in `plugin.json`. Both files call the same shim scripts in `plugins/bouncer/scripts/`.
+Claude Code reads inline hooks from `plugin.json` and ignores `hooks/hooks.json` when inline hooks are present. Copilot CLI reads `hooks/hooks.json` and ignores inline hooks in `plugin.json`. Both files call the same shim scripts in `scripts/`.
 
 The shims (`bouncer-hook.sh`, `bouncer-hook.ps1`) check if `bouncer` is on PATH. If found, stdin is forwarded and the exit code is passed through. If missing, the shim exits 0 (allow) and writes a warning to stderr. This lets the plugin be installed before the CLI tool without breaking sessions.
 

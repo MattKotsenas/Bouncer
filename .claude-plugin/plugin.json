@@ -6,7 +6,7 @@
     "name": "Bouncer"
   },
   "license": "MIT",
-  "keywords": [
+  "keywords":[
     "hooks",
     "security",
     "pretooluse",

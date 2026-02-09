@@ -33,20 +33,35 @@
     <EmbeddedResource Include="$(RepositoryRoot).bouncer.json.example" />
   </ItemGroup>
 
-  <Target Name="StampPluginVersion" AfterTargets="BeforePack" Condition="Exists('$(RepositoryRoot)plugins\bouncer\.claude-plugin\plugin.json')">
+  <Target Name="StampPluginVersion" BeforeTargets="AfterBuild" Condition="Exists('$(RepositoryRoot).claude-plugin\plugin.json') Or Exists('$(RepositoryRoot)plugin.json')">
     <PropertyGroup>
-      <PluginJsonPath>$(RepositoryRoot)plugins\bouncer\.claude-plugin\plugin.json</PluginJsonPath>
       <PluginVersion Condition="'$(PackageVersion)' != ''">$(PackageVersion)</PluginVersion>
       <PluginVersion Condition="'$(PluginVersion)' == ''">$(Version)</PluginVersion>
     </PropertyGroup>
-    <ReadLinesFromFile File="$(PluginJsonPath)">
-      <Output TaskParameter="Lines" ItemName="PluginJsonLines" />
-    </ReadLinesFromFile>
-    <PropertyGroup>
-      <PluginJsonContent>@(PluginJsonLines, '\n')</PluginJsonContent>
-      <PluginJsonUpdated>$([System.Text.RegularExpressions.Regex]::Replace('$(PluginJsonContent)', '\"version\"\\s*:\\s*\"[^\"]+\"', '\"version\": \"$(PluginVersion)\"'))</PluginJsonUpdated>
+
+    <PropertyGroup Condition="Exists('$(RepositoryRoot).claude-plugin\plugin.json')">
+      <ClaudePluginJsonPath>$(RepositoryRoot).claude-plugin\plugin.json</ClaudePluginJsonPath>
     </PropertyGroup>
-    <WriteLinesToFile File="$(PluginJsonPath)" Lines="$(PluginJsonUpdated)" Overwrite="true" Encoding="UTF8" />
+    <ReadLinesFromFile Condition="Exists('$(RepositoryRoot).claude-plugin\plugin.json')" File="$(ClaudePluginJsonPath)">
+      <Output TaskParameter="Lines" ItemName="ClaudePluginJsonLines" />
+    </ReadLinesFromFile>
+    <PropertyGroup Condition="Exists('$(RepositoryRoot).claude-plugin\plugin.json')">
+      <ClaudePluginJsonContent>@(ClaudePluginJsonLines, '\n')</ClaudePluginJsonContent>
+      <ClaudePluginJsonUpdated>$([System.Text.RegularExpressions.Regex]::Replace('$(ClaudePluginJsonContent)', '\"version\"\\s*:\\s*\"[^\"]+\"', '\"version\": \"$(PluginVersion)\"'))</ClaudePluginJsonUpdated>
+    </PropertyGroup>
+    <WriteLinesToFile Condition="Exists('$(RepositoryRoot).claude-plugin\plugin.json')" File="$(ClaudePluginJsonPath)" Lines="$(ClaudePluginJsonUpdated)" Overwrite="true" />
+
+    <PropertyGroup Condition="Exists('$(RepositoryRoot)plugin.json')">
+      <RootPluginJsonPath>$(RepositoryRoot)plugin.json</RootPluginJsonPath>
+    </PropertyGroup>
+    <ReadLinesFromFile Condition="Exists('$(RepositoryRoot)plugin.json')" File="$(RootPluginJsonPath)">
+      <Output TaskParameter="Lines" ItemName="RootPluginJsonLines" />
+    </ReadLinesFromFile>
+    <PropertyGroup Condition="Exists('$(RepositoryRoot)plugin.json')">
+      <RootPluginJsonContent>@(RootPluginJsonLines, '\n')</RootPluginJsonContent>
+      <RootPluginJsonUpdated>$([System.Text.RegularExpressions.Regex]::Replace('$(RootPluginJsonContent)', '\"version\"\\s*:\\s*\"[^\"]+\"', '\"version\": \"$(PluginVersion)\"'))</RootPluginJsonUpdated>
+    </PropertyGroup>
+    <WriteLinesToFile Condition="Exists('$(RepositoryRoot)plugin.json')" File="$(RootPluginJsonPath)" Lines="$(RootPluginJsonUpdated)" Overwrite="true" />
   </Target>
 
 </Project>
