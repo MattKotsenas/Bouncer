@@ -81,14 +81,19 @@ Run `bouncer init` to create `~/.bouncer/config.json`.
 
 Bouncer loads `~/.bouncer/config.json` from the user's home directory. Run `bouncer init` to create it from the embedded defaults, or see `.bouncer.json.example` for the full schema.
 
-Audit logs are written to `~/.bouncer/logs/{repo}-{hash}/audit.log`, where `{repo}` is the working directory name and `{hash}` is an 8-character SHA-256 of the absolute path. This keeps logs separated per project without ambiguity when two repos share the same name.
+Audit logs are written to `~/.bouncer/logs/YYYY-MM-DD.log` (one file per day, all projects). Each JSON entry includes a `Cwd` field so you can filter by project:
+
+```bash
+# Show only denials for a specific project
+jq 'select(.state.Cwd == "C:\\Projects\\my-app")' ~/.bouncer/logs/2026-02-09.log
+```
 
 Key settings:
 - `defaultAction`: what to do when no rule or LLM decision is available (`allow` or `deny`).
 - `ruleGroups`: enable/disable default rule sets by category (bash, powershell, builtins, git, secrets-exposure, production-risk, web).
 - `customRules`: add project-specific patterns (each with its own allow/deny action).
 - `llmFallback`: enable LLM-as-judge and configure providers.
-- `Logging:File:Path`: file log output path (default: `~/.bouncer/logs/{repo}-{hash}/audit.log`).
+- `Logging:File:Path`: file log output path (default: `~/.bouncer/logs/YYYY-MM-DD.log`).
 - `Logging:LogLevel`: standard `Microsoft.Extensions.Logging` section that controls categories (`Bouncer.Audit.Deny`, `Bouncer.Audit.Allow`).
 
 Tier 1 includes allow rules for known-safe commands to keep routine calls out of the LLM fallback.

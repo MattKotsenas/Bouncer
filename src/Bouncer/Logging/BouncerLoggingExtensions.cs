@@ -13,7 +13,7 @@ public static class BouncerLoggingExtensions
     {
         services.AddLogging(builder =>
         {
-            builder.AddFilter((category, level) => level >= LogLevel.Error);
+            builder.SetMinimumLevel(LogLevel.Warning);
             builder.AddFilter(AuditLogCategories.Deny, LogLevel.Information);
             builder.AddFilter(AuditLogCategories.Allow, LogLevel.None);
             builder.AddConfiguration(configuration.GetSection("Logging"));

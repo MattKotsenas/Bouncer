@@ -7,7 +7,7 @@ $ErrorActionPreference = 'Stop'
 $bouncerPath = Get-Command bouncer -ErrorAction SilentlyContinue
 
 if ($bouncerPath) {
-    $input | & bouncer @args
+    [Console]::In.ReadToEnd() | & bouncer @args
     exit $LASTEXITCODE
 } else {
     Write-Output '{"decision":"allow","reason":"bouncer not found on PATH; allowing by default"}'

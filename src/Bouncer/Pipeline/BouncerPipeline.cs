@@ -140,18 +140,19 @@ public sealed partial class BouncerPipeline : IBouncerPipeline
         }
 
         var toolInputJson = JsonSerializer.Serialize(input.ToolInput, BouncerJsonContext.Default.ToolInput);
-        Log.AuditDecision(logger, input.ToolName, toolInputJson, result.Decision, result.Tier, result.Reason);
+        Log.AuditDecision(logger, input.ToolName, toolInputJson, input.Cwd, result.Decision, result.Tier, result.Reason);
     }
 
     private static partial class Log
     {
         [LoggerMessage(
             Level = LogLevel.Information,
-            Message = "Audit {ToolName} {ToolInput} {Decision} {Tier} {Reason}")]
+            Message = "Audit {ToolName} {ToolInput} {Cwd} {Decision} {Tier} {Reason}")]
         public static partial void AuditDecision(
             ILogger logger,
             string toolName,
             string toolInput,
+            string? cwd,
             PermissionDecision decision,
             EvaluationTier tier,
             string reason);
