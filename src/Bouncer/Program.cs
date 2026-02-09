@@ -1,3 +1,4 @@
+using Bouncer;
 using Bouncer.Commands;
 using Bouncer.Llm;
 using Bouncer.Logging;
@@ -15,7 +16,7 @@ if (args.Length > 0 && args[0].Equals("init", StringComparison.OrdinalIgnoreCase
 }
 
 var configuration = new ConfigurationBuilder()
-    .AddJsonFile(".bouncer.json", optional: true)
+    .AddJsonFile(BouncerPaths.ConfigFile, optional: true)
     .AddEnvironmentVariables("BOUNCER_")
     .Build();
 

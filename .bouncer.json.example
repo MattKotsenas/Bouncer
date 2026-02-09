@@ -23,9 +23,6 @@
     ]
   },
   "Logging": {
-    "File": {
-      "Path": ".bouncer/audit.log"
-    },
     "LogLevel": {
       "Default": "Error",
       "Bouncer.Audit.Deny": "Information",

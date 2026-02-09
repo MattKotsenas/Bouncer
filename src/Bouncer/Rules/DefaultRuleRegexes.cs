@@ -34,7 +34,7 @@ public static partial class DefaultRuleRegexes
     public const string SecretCurlPattern =
         @"(?i)\bcurl\b.*\s(--data|-d)\b.*(@)?(\.env(\.|$)|\.env\.production(\.|$)|\.(pem|key))";
 
-    public const string BouncerConfigPathPattern = @"(^|[\\/])\.bouncer\.json$";
+    public const string BouncerConfigPathPattern = @"(^|[\\/])\.bouncer[\\/]config\.json$";
 
     public const string BouncerHookShimPattern = @"(^|[\\/])bouncer-hook\.(sh|ps1)$";
 

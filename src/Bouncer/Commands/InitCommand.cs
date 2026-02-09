@@ -4,7 +4,7 @@ namespace Bouncer.Commands;
 
 public static class InitCommand
 {
-    private const string DefaultPath = ".bouncer.json";
+    private static readonly string DefaultPath = BouncerPaths.ConfigFile;
 
     public static async Task<int> ExecuteAsync(
         string? path,

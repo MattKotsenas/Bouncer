@@ -37,7 +37,21 @@ We considered a bloom filter as a Tier 0 optimization. At the current rule set s
 ## Why DI in a 25ms process
 Dependency injection enables clean swapping of rule engines, judges, and loggers in tests. With AOT, container build cost is ~1-3ms. That tradeoff is worth the testability and composability.
 
-Logging uses the standard `ILogger` pipeline with a JSON file logger configured via `Logging:File:Path`.
+Logging uses the standard `ILogger` pipeline with a JSON file logger. Logs are written to `~/.bouncer/logs/{repo}-{hash}/audit.log` by default, segmented per project using the directory name and a short SHA-256 of the absolute path. This avoids ambiguity when two repos share the same name. The path is configurable via `Logging:File:Path`.
+
+## User-level dotfiles
+
+All configuration and logs live under `~/.bouncer/`:
+
+```
+~/.bouncer/
+  config.json                              # shared config (loaded on every invocation)
+  logs/
+    my-app-a1b2c3d4/audit.log             # per-repo audit log
+    other-repo-f7e8d9c0/audit.log
+```
+
+The hash is 8 hex characters of SHA-256 over the normalized (lowercase, forward-slash) absolute working directory path. `bouncer init` creates `config.json` from the embedded example.
 
 ## Default action (fail-open)
 Bouncer is a safety net for catastrophic commands, not a security boundary. If Bouncer crashes, fails to parse input, or has no provider available, blocking the tool call can be worse than letting it through. The default is fail-open (`defaultAction: allow`), but it is configurable to fail-closed (`defaultAction: deny`) for CI or shared infra.

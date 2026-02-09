@@ -87,7 +87,7 @@ public sealed class RuleGroupBehaviorTests
     {
         var engine = CreateEngine();
 
-        var match = engine.Evaluate(HookInput.Edit(".bouncer.json", "{ }"));
+        var match = engine.Evaluate(HookInput.Edit(".bouncer/config.json", "{ }"));
 
         match.Should().NotBeNull();
         match!.Decision.Should().Be(PermissionDecision.Deny);

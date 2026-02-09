@@ -34,7 +34,7 @@ claude plugin marketplace add <agent-plugins-source>
 claude plugin install bouncer@agent-plugins
 ```
 
-Restart Claude Code after install and run `bouncer init` in each project to create `.bouncer.json`.
+Restart Claude Code after install and run `bouncer init` to create `~/.bouncer/config.json`.
 
 ### Copilot CLI
 
@@ -68,25 +68,27 @@ Create `.github/hooks/bouncer.json`:
 }
 ```
 
-Run `bouncer init` in each project to create `.bouncer.json`.
+Run `bouncer init` to create `~/.bouncer/config.json`.
 
 ## Commands
 
 - `bouncer` - hook mode (reads stdin, writes JSON, exits 0/2)
-- `bouncer init` - write `.bouncer.json` with defaults
+- `bouncer init` - write `~/.bouncer/config.json` with defaults
 - `bouncer check` - show resolved config and provider availability
 - `bouncer test <tool> <input>` - dry-run evaluation
 
 ## Configuration
 
-Bouncer loads `.bouncer.json` from the current directory. See `.bouncer.json.example` for the default schema.
+Bouncer loads `~/.bouncer/config.json` from the user's home directory. Run `bouncer init` to create it from the embedded defaults, or see `.bouncer.json.example` for the full schema.
+
+Audit logs are written to `~/.bouncer/logs/{repo}-{hash}/audit.log`, where `{repo}` is the working directory name and `{hash}` is an 8-character SHA-256 of the absolute path. This keeps logs separated per project without ambiguity when two repos share the same name.
 
 Key settings:
 - `defaultAction`: what to do when no rule or LLM decision is available (`allow` or `deny`).
 - `ruleGroups`: enable/disable default rule sets by category (bash, powershell, builtins, git, secrets-exposure, production-risk, web).
 - `customRules`: add project-specific patterns (each with its own allow/deny action).
 - `llmFallback`: enable LLM-as-judge and configure providers.
-- `Logging:File:Path`: file log output path.
+- `Logging:File:Path`: file log output path (default: `~/.bouncer/logs/{repo}-{hash}/audit.log`).
 - `Logging:LogLevel`: standard `Microsoft.Extensions.Logging` section that controls categories (`Bouncer.Audit.Deny`, `Bouncer.Audit.Allow`).
 
 Tier 1 includes allow rules for known-safe commands to keep routine calls out of the LLM fallback.
@@ -95,7 +97,7 @@ Default filters are Error-only everywhere, `Bouncer.Audit.Deny` at Information, 
 
 File logs are JSON lines with these fields: `timestamp`, `level`, `category`, `message`, `state`, `scopes`, `eventId`, and `exception`.
 
-`bouncer init` writes a fully expanded config based on the embedded example so you can edit in place.
+`bouncer init` writes a fully expanded config based on the embedded example so you can edit in place. The config file is shared across all projects.
 
 ## LLM providers
 

@@ -27,7 +27,7 @@ public sealed class ConfigExampleTests
 
         var fileOptions = new FileLoggingOptions();
         configuration.GetSection(FileLoggingOptions.SectionName).Bind(fileOptions);
-        fileOptions.Path.Should().Be(".bouncer/audit.log");
+        fileOptions.Path.Should().Be(BouncerPaths.LogFile());
 
         configuration["Logging:LogLevel:Default"].Should().Be("Error");
         configuration["Logging:LogLevel:Bouncer.Audit.Deny"].Should().Be("Information");
