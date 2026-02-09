@@ -27,8 +27,8 @@ jobs:
             base="${{ github.event.before }}"
           fi
           head="${{ github.sha }}"
-          if [[ "$base" == "0000000000000000000000000000000000000000" ]]; then
-            changed="$(git ls-tree --name-only -r "$head")"
+          if [[ "$base" == "0000000000000000000000000000000000000000" ]] || ! git cat-file -e "$base" 2>/dev/null; then
+            changed="$(git diff --name-only "$base"~ "$head" 2>/dev/null || git ls-tree --name-only -r "$head")"
           else
             changed="$(git diff --name-only "$base" "$head")"
           fi
@@ -73,4 +73,4 @@ jobs:
         env:
           FEEDZ_NUGET_SOURCE: ${{ secrets.FEEDZ_NUGET_SOURCE }}
           FEEDZ_API_KEY: ${{ secrets.FEEDZ_API_KEY }}
-        run: dotnet nuget push "artifacts/packages/*.nupkg" --source "https://f.feedz.io/matt-kotsenas/bouncer/nuget/index.json" --api-key "$FEEDZ_API_KEY" --skip-duplicate
+        run: dotnet nuget push "artifacts/package/release/*.nupkg" --source "https://f.feedz.io/matt-kotsenas/bouncer/nuget/index.json" --api-key "$FEEDZ_API_KEY" --skip-duplicate
