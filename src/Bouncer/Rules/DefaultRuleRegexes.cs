@@ -70,7 +70,7 @@ public static partial class DefaultRuleRegexes
 
     public const string PowerShellStopRestartPattern = @"\b(Stop-Computer|Restart-Computer)\b";
 
-    public const string SafeBashInfoPattern =
+    public const string SafeShellInfoPattern =
         @"^\s*(ls|pwd|whoami|uname|date|id|which|echo)\b[^;&|<>$`]*$";
 
     public const string SafeGitReadonlyPattern =
@@ -169,8 +169,8 @@ public static partial class DefaultRuleRegexes
     [GeneratedRegex(PowerShellStopRestartPattern, RegexOptions.IgnoreCase)]
     public static partial Regex PowerShellStopRestart();
 
-    [GeneratedRegex(SafeBashInfoPattern, RegexOptions.IgnoreCase)]
-    public static partial Regex SafeBashInfo();
+    [GeneratedRegex(SafeShellInfoPattern, RegexOptions.IgnoreCase)]
+    public static partial Regex SafeShellInfo();
 
     [GeneratedRegex(SafeGitReadonlyPattern, RegexOptions.IgnoreCase)]
     public static partial Regex SafeGitReadonly();

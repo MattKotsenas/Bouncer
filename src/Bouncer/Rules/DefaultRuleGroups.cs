@@ -48,13 +48,13 @@ public static class DefaultRuleGroups
                     "System file truncation",
                     DefaultRuleRegexes.TruncateSystemFile),
                 new RuleDefinition(
-                    "safe-bash-info",
+                    "safe-shell-info",
                     "bash",
                     ToolField.Command,
-                    DefaultRuleRegexes.SafeBashInfoPattern,
+                    DefaultRuleRegexes.SafeShellInfoPattern,
                     "allow",
                     "Known safe shell command",
-                    DefaultRuleRegexes.SafeBashInfo)
+                    DefaultRuleRegexes.SafeShellInfo)
             ]),
         new RuleGroupDefinition(
             "powershell",
@@ -373,6 +373,14 @@ public static class DefaultRuleGroups
             DefaultRuleRegexes.PowerShellSafeReadPattern,
             "allow",
             "Known safe PowerShell file read",
-            DefaultRuleRegexes.PowerShellSafeRead)
+            DefaultRuleRegexes.PowerShellSafeRead),
+        new RuleDefinition(
+            $"{toolName}-safe-shell-alias",
+            toolName,
+            ToolField.Command,
+            DefaultRuleRegexes.SafeShellInfoPattern,
+            "allow",
+            "Known safe shell command",
+            DefaultRuleRegexes.SafeShellInfo)
     ];
 }
