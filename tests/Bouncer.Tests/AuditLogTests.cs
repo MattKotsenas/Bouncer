@@ -84,7 +84,7 @@ public sealed class AuditLogTests
     {
         var optionsWrapper = OptionsFactory.Create(options);
         var engine = new RegexRuleEngine(optionsWrapper);
-        return new BouncerPipeline(engine, new NullLlmJudge(), loggerFactory, optionsWrapper);
+        return new BouncerPipeline(engine, new NullLlmJudge(), new HookAdapterFactory([new ClaudeHookAdapter()]), loggerFactory, optionsWrapper);
     }
 
     private static ILoggerFactory CreateLoggerFactory(FileLoggingOptions options, LogLevel allowLevel) =>

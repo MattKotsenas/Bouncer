@@ -57,10 +57,25 @@ The hash is 8 hex characters of SHA-256 over the normalized (lowercase, forward-
 Bouncer is a safety net for catastrophic commands, not a security boundary. If Bouncer crashes, fails to parse input, or has no provider available, blocking the tool call can be worse than letting it through. The default is fail-open (`defaultAction: allow`), but it is configurable to fail-closed (`defaultAction: deny`) for CI or shared infra.
 
 ## Hook contract
-- Input: JSON on stdin with `tool_name`, `tool_input`, and `cwd`
-- Output: JSON on stdout with `permissionDecision` and `permissionDecisionReason`
+- Input: JSON on stdin (format auto-detected; see Hook Adapters below)
+- Output: JSON on stdout (format matches detected input format)
 - Exit code: `0` allow, `2` deny
-- Malformed input: handled via `defaultAction` (fail-open/closed)
+- Malformed input: handled via `defaultAction` (fail-open/closed), logged at Warning level
+
+## Hook adapters
+
+Claude Code and Copilot CLI send different JSON formats. Bouncer uses an adapter pattern (`IHookAdapter`) to normalize both into a canonical `HookInput` and convert `EvaluationResult` back to the correct output format.
+
+| | Claude Code | Copilot CLI |
+|---|---|---|
+| Tool name | `"tool_name": "Bash"` | `"toolName": "bash"` |
+| Tool args | `"tool_input": { ... }` (object) | `"toolArgs": "{...}"` (JSON string) |
+| Output | `{"hookSpecificOutput":{...}}` | `{"permissionDecision":"..."}` |
+| Exit code | 0 allow, 2 deny | 0 allow, 2 deny |
+
+Auto-detection: the pipeline peeks at the parsed JSON for `"toolName"` (Copilot) vs `"tool_name"` (Claude) and selects the matching adapter. Unknown formats default to the Claude adapter.
+
+The pipeline, rule engine, and LLM judge all operate on canonical `HookInput` — they have no knowledge of wire formats. Adding a new platform means adding one `IHookAdapter` implementation.
 
 ## Plugin hook wiring
 

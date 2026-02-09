@@ -7,6 +7,7 @@ using Bouncer.Pipeline;
 using Bouncer.Rules;
 using FluentAssertions;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Testing;
 using OptionsFactory = Microsoft.Extensions.Options.Options;
 
 namespace Bouncer.Tests;
@@ -96,6 +97,71 @@ public sealed class BouncerPipelineTests
         Encoding.UTF8.GetString(outputStream.ToArray()).Should().Contain("\"permissionDecision\":\"deny\"");
     }
 
+    [TestMethod]
+    public async Task RunAsync_CopilotFormat_DeniesRmRf()
+    {
+        var pipeline = CreatePipeline(new BouncerOptions());
+        var json = """{"toolName":"bash","toolArgs":"{\"command\":\"rm -rf /\"}","cwd":"/tmp"}""";
+
+        using var inputStream = new MemoryStream(Encoding.UTF8.GetBytes(json));
+        using var outputStream = new MemoryStream();
+
+        var exitCode = await pipeline.RunAsync(inputStream, outputStream);
+
+        exitCode.Should().Be(2);
+        var output = Encoding.UTF8.GetString(outputStream.ToArray());
+        output.Should().Contain("\"permissionDecision\":\"deny\"");
+        output.Should().NotContain("hookSpecificOutput");
+    }
+
+    [TestMethod]
+    public async Task RunAsync_CopilotFormat_AllowsSafeCommand()
+    {
+        var pipeline = CreatePipeline(new BouncerOptions());
+        var json = """{"toolName":"bash","toolArgs":"{\"command\":\"echo hello\"}","cwd":"/tmp"}""";
+
+        using var inputStream = new MemoryStream(Encoding.UTF8.GetBytes(json));
+        using var outputStream = new MemoryStream();
+
+        var exitCode = await pipeline.RunAsync(inputStream, outputStream);
+
+        exitCode.Should().Be(0);
+        var output = Encoding.UTF8.GetString(outputStream.ToArray());
+        output.Should().Contain("\"permissionDecision\":\"allow\"");
+        output.Should().NotContain("hookSpecificOutput");
+    }
+
+    [TestMethod]
+    public async Task RunAsync_ClaudeFormat_WrapsInHookSpecificOutput()
+    {
+        var pipeline = CreatePipeline(new BouncerOptions());
+        var json = """{"tool_name":"Bash","tool_input":{"command":"rm -rf /"},"cwd":"/tmp"}""";
+
+        using var inputStream = new MemoryStream(Encoding.UTF8.GetBytes(json));
+        using var outputStream = new MemoryStream();
+
+        var exitCode = await pipeline.RunAsync(inputStream, outputStream);
+
+        exitCode.Should().Be(2);
+        Encoding.UTF8.GetString(outputStream.ToArray()).Should().Contain("\"hookSpecificOutput\"");
+    }
+
+    [TestMethod]
+    public async Task RunAsync_InvalidJson_LogsWarning()
+    {
+        var options = new BouncerOptions { DefaultAction = "allow" };
+        var collector = new FakeLogCollector();
+        var factory = LoggerFactory.Create(b => b.SetMinimumLevel(LogLevel.Warning).AddProvider(new FakeLoggerProvider(collector)));
+        var pipeline = CreatePipeline(options, loggerFactory: factory);
+
+        using var inputStream = new MemoryStream(Encoding.UTF8.GetBytes("not-json"));
+        using var outputStream = new MemoryStream();
+
+        await pipeline.RunAsync(inputStream, outputStream);
+
+        collector.GetSnapshot().Should().ContainSingle(r => r.Message.Contains("Failed to parse hook input"));
+    }
+
     private static IBouncerPipeline CreatePipeline(
         BouncerOptions options,
         ILlmJudge? llmJudge = null,
@@ -104,9 +170,11 @@ public sealed class BouncerPipelineTests
         var optionsWrapper = OptionsFactory.Create(options);
         var engine = new RegexRuleEngine(optionsWrapper);
         var factory = loggerFactory ?? LoggerFactory.Create(builder => { });
+        var adapterFactory = new HookAdapterFactory([new ClaudeHookAdapter(), new CopilotHookAdapter()]);
         return new BouncerPipeline(
             engine,
             llmJudge ?? new NullLlmJudge(),
+            adapterFactory,
             factory,
             optionsWrapper);
     }

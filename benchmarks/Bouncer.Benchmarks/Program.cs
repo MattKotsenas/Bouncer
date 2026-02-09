@@ -44,6 +44,7 @@ public class Tier1PipelineBenchmarks
         _pipeline = new BouncerPipeline(
             engine,
             new NullLlmJudge(),
+            new HookAdapterFactory([new ClaudeHookAdapter()]),
             loggerFactory,
             optionsWrapper);
 

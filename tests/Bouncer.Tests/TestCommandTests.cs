@@ -182,7 +182,7 @@ public sealed class TestCommandTests
         var optionsWrapper = OptionsFactory.Create(options);
         var engine = new RegexRuleEngine(optionsWrapper);
         var loggerFactory = LoggerFactory.Create(builder => { });
-        var pipeline = new BouncerPipeline(engine, new NullLlmJudge(), loggerFactory, optionsWrapper);
+        var pipeline = new BouncerPipeline(engine, new NullLlmJudge(), new HookAdapterFactory([new ClaudeHookAdapter()]), loggerFactory, optionsWrapper);
         return (pipeline, engine, options);
     }
 }

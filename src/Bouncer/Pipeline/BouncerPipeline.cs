@@ -13,20 +13,25 @@ public sealed partial class BouncerPipeline : IBouncerPipeline
 {
     private readonly IRuleEngine _ruleEngine;
     private readonly ILlmJudge _llmJudge;
+    private readonly IHookAdapterFactory _adapterFactory;
     private readonly ILogger _denyLogger;
     private readonly ILogger _allowLogger;
+    private readonly ILogger<BouncerPipeline> _pipelineLogger;
     private readonly BouncerOptions _options;
 
     public BouncerPipeline(
         IRuleEngine ruleEngine,
         ILlmJudge llmJudge,
+        IHookAdapterFactory adapterFactory,
         ILoggerFactory loggerFactory,
         IOptions<BouncerOptions> options)
     {
         _ruleEngine = ruleEngine;
         _llmJudge = llmJudge;
+        _adapterFactory = adapterFactory;
         _denyLogger = loggerFactory.CreateLogger(AuditLogCategories.Deny);
         _allowLogger = loggerFactory.CreateLogger(AuditLogCategories.Allow);
+        _pipelineLogger = loggerFactory.CreateLogger<BouncerPipeline>();
         _options = options.Value;
     }
 
@@ -65,37 +70,41 @@ public sealed partial class BouncerPipeline : IBouncerPipeline
 
     public async Task<int> RunAsync(Stream input, Stream output, CancellationToken cancellationToken = default)
     {
-        HookInput? hookInput;
+        JsonDocument document;
         try
         {
-            hookInput = await JsonSerializer.DeserializeAsync(
-                input,
-                BouncerJsonContext.Default.HookInput,
-                cancellationToken);
+            document = await JsonDocument.ParseAsync(input, cancellationToken: cancellationToken);
         }
-        catch (JsonException)
+        catch (JsonException ex)
         {
-            return await WriteDefaultDecisionAsync(output, "Invalid hook input JSON", cancellationToken);
+            Log.InvalidHookInput(_pipelineLogger, ex);
+            return await WriteDefaultDecisionAsync(output, "Invalid hook input JSON", _adapterFactory.Default, cancellationToken);
         }
 
-        if (hookInput is null)
+        using (document)
         {
-            return await WriteDefaultDecisionAsync(output, "Missing hook input", cancellationToken);
+            var adapter = _adapterFactory.Create(document.RootElement);
+            HookInput? hookInput;
+            try
+            {
+                hookInput = adapter.ReadInput(document.RootElement);
+            }
+            catch (Exception ex) when (ex is JsonException or InvalidOperationException)
+            {
+                Log.InvalidHookInput(_pipelineLogger, ex);
+                return await WriteDefaultDecisionAsync(output, "Invalid hook input JSON", adapter, cancellationToken);
+            }
+
+            if (hookInput is null)
+            {
+                Log.MissingHookInput(_pipelineLogger);
+                return await WriteDefaultDecisionAsync(output, "Missing hook input", adapter, cancellationToken);
+            }
+
+            var result = await EvaluateAsync(hookInput, cancellationToken);
+            await adapter.WriteOutputAsync(output, result, cancellationToken);
+            return adapter.GetExitCode(result);
         }
-
-        var result = await EvaluateAsync(hookInput, cancellationToken);
-        var hookOutput = result.Decision == PermissionDecision.Deny
-            ? HookOutput.Deny(result.Reason)
-            : HookOutput.Allow(result.Reason);
-
-        await JsonSerializer.SerializeAsync(
-            output,
-            hookOutput,
-            BouncerJsonContext.Default.HookOutput,
-            cancellationToken);
-        await output.FlushAsync(cancellationToken);
-
-        return result.Decision == PermissionDecision.Deny ? 2 : 0;
     }
 
     private PermissionDecision GetDefaultDecision() =>
@@ -106,21 +115,15 @@ public sealed partial class BouncerPipeline : IBouncerPipeline
     private async Task<int> WriteDefaultDecisionAsync(
         Stream output,
         string reason,
+        IHookAdapter adapter,
         CancellationToken cancellationToken)
     {
         var decision = GetDefaultDecision();
-        var hookOutput = decision == PermissionDecision.Deny
-            ? HookOutput.Deny($"{reason}; defaultAction: {_options.DefaultAction}")
-            : HookOutput.Allow($"{reason}; defaultAction: {_options.DefaultAction}");
+        var fullReason = $"{reason}; defaultAction: {_options.DefaultAction}";
+        var result = new EvaluationResult(decision, EvaluationTier.DefaultAction, fullReason);
 
-        await JsonSerializer.SerializeAsync(
-            output,
-            hookOutput,
-            BouncerJsonContext.Default.HookOutput,
-            cancellationToken);
-        await output.FlushAsync(cancellationToken);
-
-        return decision == PermissionDecision.Deny ? 2 : 0;
+        await adapter.WriteOutputAsync(output, result, cancellationToken);
+        return adapter.GetExitCode(result);
     }
 
     private void MaybeLog(HookInput input, EvaluationResult result)
@@ -152,5 +155,19 @@ public sealed partial class BouncerPipeline : IBouncerPipeline
             PermissionDecision decision,
             EvaluationTier tier,
             string reason);
+
+        [LoggerMessage(
+            EventId = 2,
+            EventName = "InvalidHookInput",
+            Level = LogLevel.Warning,
+            Message = "Failed to parse hook input")]
+        public static partial void InvalidHookInput(ILogger logger, Exception? exception);
+
+        [LoggerMessage(
+            EventId = 3,
+            EventName = "MissingHookInput",
+            Level = LogLevel.Warning,
+            Message = "Hook input was null or empty")]
+        public static partial void MissingHookInput(ILogger logger);
     }
 }
