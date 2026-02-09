@@ -167,6 +167,14 @@ public static class DefaultRuleGroups
                     DefaultRuleRegexes.SafeNonEmptyPattern,
                     "allow",
                     "Known safe todo update",
+                    DefaultRuleRegexes.SafeNonEmpty),
+                new RuleDefinition(
+                    "safe-report-intent",
+                    "report_intent",
+                    ToolField.Command,
+                    DefaultRuleRegexes.SafeNonEmptyPattern,
+                    "allow",
+                    "Known safe intent report",
                     DefaultRuleRegexes.SafeNonEmpty)
             ]),
         new RuleGroupDefinition(
