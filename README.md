@@ -4,54 +4,33 @@ Bouncer is a PreToolUse hook that blocks dangerous tool calls in Claude Code or 
 
 ## Install
 
-```bash
-dotnet tool install --global bouncer --add-source https://f.feedz.io/matt-kotsenas/bouncer/nuget/index.json
-```
+Bouncer has two parts: a CLI tool (the decision engine) and a plugin (wires the CLI into your agent's hook system).
 
-## Quick start
-
-```bash
-bouncer init
-bouncer test bash "rm -rf /"
-```
-
-Configure your agent's PreToolUse hook to run `bouncer` (it reads the tool JSON from stdin and writes a decision to stdout).
-
-## Plugin install
-
-Bouncer ships as a plugin for both Claude Code and GitHub Copilot CLI. Installing the plugin automatically wires `bouncer` as a PreToolUse hook on every tool call. If `bouncer` isn't on your PATH, the hook degrades gracefully — tool calls are allowed with a warning on stderr.
-
-First, install the bouncer CLI as a global tool:
+### 1. Install the CLI
 
 ```bash
 dotnet tool install --global bouncer --add-source https://f.feedz.io/matt-kotsenas/bouncer/nuget/index.json
 ```
 
-### Claude Code
+### 2. Install the plugin
+
+#### Copilot CLI
 
 ```bash
-claude plugin marketplace add <agent-plugins-source>
-claude plugin install bouncer@agent-plugins
+copilot plugin install MattKotsenas/Bouncer
 ```
 
-Restart Claude Code after install and run `bouncer init` to create `~/.bouncer/config.json`.
+As of Copilot CLI v0.0.406, plugin hooks require the `--experimental` flag (or `"experimental": true` in `~/.copilot/config.json`).
 
-### Copilot CLI
-
-As of Copilot CLI v0.0.406, plugin hooks require the `--experimental` flag.
+#### Claude Code
 
 ```bash
-copilot plugin install <plugin-source>
-copilot --experimental  # hooks only fire with this flag
+claude plugin install MattKotsenas/Bouncer
 ```
 
-Alternatively, you can wire hooks manually via `.github/hooks/` in your repository:
+#### Manual hook wiring
 
-```bash
-mkdir -p .github/hooks
-```
-
-Create `.github/hooks/bouncer.json`:
+If you prefer not to use the plugin system, you can wire bouncer as a repo-level hook. Create `.github/hooks/bouncer.json`:
 
 ```json
 {
@@ -68,7 +47,20 @@ Create `.github/hooks/bouncer.json`:
 }
 ```
 
-Run `bouncer init` to create `~/.bouncer/config.json`.
+### 3. Initialize config
+
+```bash
+bouncer init
+```
+
+This creates `~/.bouncer/config.json` with sensible defaults. See `.bouncer.json.example` for the full schema.
+
+## Quick start
+
+```bash
+bouncer test bash "rm -rf /"    # expect: deny
+bouncer test bash "echo hello"  # expect: allow
+```
 
 ## Commands
 
