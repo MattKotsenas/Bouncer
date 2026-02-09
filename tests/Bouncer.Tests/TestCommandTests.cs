@@ -54,6 +54,128 @@ public sealed class TestCommandTests
         error.ToString().Should().BeEmpty();
     }
 
+    [TestMethod]
+    [DataRow("powershell", "echo hello")]
+    [DataRow("pwsh", "echo hello")]
+    [DataRow("PowerShell", "echo hello")]
+    public async Task TestCommand_AcceptsPowerShellToolType(string tool, string input)
+    {
+        var (pipeline, engine, options) = CreateServices();
+        var output = new StringWriter();
+        var error = new StringWriter();
+
+        var exitCode = await TestCommand.ExecuteAsync(
+            [tool, input],
+            pipeline,
+            engine,
+            options,
+            output,
+            error);
+
+        exitCode.Should().Be(0);
+        error.ToString().Should().BeEmpty();
+        output.ToString().Should().Contain("ALLOW");
+    }
+
+    [TestMethod]
+    public async Task TestCommand_PowerShellDenyIsDetected()
+    {
+        var (pipeline, engine, options) = CreateServices();
+        var output = new StringWriter();
+        var error = new StringWriter();
+
+        var exitCode = await TestCommand.ExecuteAsync(
+            ["powershell", "Remove-Item", "-Recurse", "-Force", @"C:\"],
+            pipeline,
+            engine,
+            options,
+            output,
+            error);
+
+        exitCode.Should().Be(2);
+        output.ToString().Should().Contain("DENY");
+    }
+
+    [TestMethod]
+    [DataRow("read", "README.md")]
+    [DataRow("webfetch", "https://example.com")]
+    [DataRow("websearch", "how to test")]
+    public async Task TestCommand_AcceptsToolType(string tool, string input)
+    {
+        var (pipeline, engine, options) = CreateServices();
+        var output = new StringWriter();
+        var error = new StringWriter();
+
+        var exitCode = await TestCommand.ExecuteAsync(
+            [tool, input],
+            pipeline,
+            engine,
+            options,
+            output,
+            error);
+
+        error.ToString().Should().BeEmpty();
+        output.ToString().Should().NotBeEmpty();
+    }
+
+    [TestMethod]
+    public async Task TestCommand_WriteAcceptsPathAndContent()
+    {
+        var (pipeline, engine, options) = CreateServices();
+        var output = new StringWriter();
+        var error = new StringWriter();
+
+        var exitCode = await TestCommand.ExecuteAsync(
+            ["write", "test.txt", "hello"],
+            pipeline,
+            engine,
+            options,
+            output,
+            error);
+
+        error.ToString().Should().BeEmpty();
+        output.ToString().Should().NotBeEmpty();
+    }
+
+    [TestMethod]
+    public async Task TestCommand_AcceptsArbitraryToolName()
+    {
+        var (pipeline, engine, options) = CreateServices();
+        var output = new StringWriter();
+        var error = new StringWriter();
+
+        var exitCode = await TestCommand.ExecuteAsync(
+            ["terraform", "apply -auto-approve"],
+            pipeline,
+            engine,
+            options,
+            output,
+            error);
+
+        exitCode.Should().Be(0);
+        error.ToString().Should().BeEmpty();
+        output.ToString().Should().Contain("ALLOW");
+    }
+
+    [TestMethod]
+    public async Task TestCommand_MissingArgsReturnsUsage()
+    {
+        var (pipeline, engine, options) = CreateServices();
+        var output = new StringWriter();
+        var error = new StringWriter();
+
+        var exitCode = await TestCommand.ExecuteAsync(
+            ["bash"],
+            pipeline,
+            engine,
+            options,
+            output,
+            error);
+
+        exitCode.Should().Be(1);
+        error.ToString().Should().Contain("Usage:");
+    }
+
     private static (IBouncerPipeline Pipeline, IRuleEngine Engine, BouncerOptions Options) CreateServices()
     {
         var options = new BouncerOptions();

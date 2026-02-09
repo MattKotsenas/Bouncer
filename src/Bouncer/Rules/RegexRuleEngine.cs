@@ -89,7 +89,7 @@ public sealed class RegexRuleEngine : IRuleEngine
             ? PermissionDecision.Deny
             : PermissionDecision.Allow;
 
-    private static ToolField ResolveField(string toolName)
+    internal static ToolField ResolveField(string toolName)
     {
         return toolName.ToLowerInvariant() switch
         {

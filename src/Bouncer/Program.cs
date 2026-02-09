@@ -15,6 +15,12 @@ if (args.Length > 0 && args[0].Equals("init", StringComparison.OrdinalIgnoreCase
     return await InitCommand.ExecuteAsync(path, Console.Out, Console.Error);
 }
 
+if (args.Length > 0 && (args[0] == "--version" || args[0] == "-v"))
+{
+    Console.Out.WriteLine(typeof(Bouncer.Commands.InitCommand).Assembly.GetName().Version?.ToString(3) ?? "unknown");
+    return 0;
+}
+
 var configuration = new ConfigurationBuilder()
     .AddJsonFile(BouncerPaths.ConfigFile, optional: true)
     .AddEnvironmentVariables("BOUNCER_")
@@ -55,6 +61,6 @@ return command switch
 static int UnknownCommand(string command)
 {
     Console.Error.WriteLine($"Unknown command: {command}");
-    Console.Error.WriteLine("Available commands: init, check, test");
+    Console.Error.WriteLine("Available commands: init, check, test, --version");
     return 1;
 }
