@@ -24,7 +24,7 @@ if (runLlm)
 }
 
 [MemoryDiagnoser]
-public sealed class Tier1PipelineBenchmarks
+public class Tier1PipelineBenchmarks
 {
     private IBouncerPipeline _pipeline = null!;
     private HookInput _dangerousInput = null!;
@@ -82,7 +82,7 @@ public sealed class Tier1PipelineBenchmarks
 }
 
 [MemoryDiagnoser]
-public sealed class ContainerBuildBenchmarks
+public class ContainerBuildBenchmarks
 {
     [Benchmark]
     public void BuildAndResolvePipeline()
@@ -108,7 +108,7 @@ public sealed class ContainerBuildBenchmarks
 }
 
 [MemoryDiagnoser]
-public sealed class LlmFallbackBenchmarks
+public class LlmFallbackBenchmarks
 {
     private ILlmJudge _judge = null!;
     private HookInput _input = null!;
