@@ -180,8 +180,8 @@ public sealed class TestCommandTests
     {
         var options = new BouncerOptions();
         var optionsWrapper = OptionsFactory.Create(options);
-        var engine = new RegexRuleEngine(optionsWrapper);
         var loggerFactory = LoggerFactory.Create(builder => { });
+        var engine = new RegexRuleEngine(optionsWrapper, loggerFactory.CreateLogger<RegexRuleEngine>());
         var pipeline = new BouncerPipeline(engine, new NullLlmJudge(), new HookAdapterFactory([new ClaudeHookAdapter()]), loggerFactory, optionsWrapper);
         return (pipeline, engine, options);
     }

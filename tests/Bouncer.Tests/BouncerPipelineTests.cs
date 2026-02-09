@@ -168,8 +168,8 @@ public sealed class BouncerPipelineTests
         ILoggerFactory? loggerFactory = null)
     {
         var optionsWrapper = OptionsFactory.Create(options);
-        var engine = new RegexRuleEngine(optionsWrapper);
         var factory = loggerFactory ?? LoggerFactory.Create(builder => { });
+        var engine = new RegexRuleEngine(optionsWrapper, factory.CreateLogger<RegexRuleEngine>());
         var adapterFactory = new HookAdapterFactory([new ClaudeHookAdapter(), new CopilotHookAdapter()]);
         return new BouncerPipeline(
             engine,

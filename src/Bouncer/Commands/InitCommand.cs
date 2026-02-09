@@ -26,6 +26,12 @@ public static class InitCommand
         await using var resourceStream = assembly.GetManifestResourceStream(resourceName)
             ?? throw new InvalidOperationException("Embedded example config not found.");
 
+        var directory = Path.GetDirectoryName(outputPath);
+        if (!string.IsNullOrWhiteSpace(directory))
+        {
+            Directory.CreateDirectory(directory);
+        }
+
         await using var stream = File.Create(outputPath);
         await resourceStream.CopyToAsync(stream, cancellationToken);
         await stream.FlushAsync(cancellationToken);

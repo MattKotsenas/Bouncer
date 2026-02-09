@@ -2,6 +2,7 @@ using Bouncer.Models;
 using Bouncer.Options;
 using Bouncer.Rules;
 using FluentAssertions;
+using Microsoft.Extensions.Logging;
 using OptionsFactory = Microsoft.Extensions.Options.Options;
 
 namespace Bouncer.Tests;
@@ -63,5 +64,5 @@ public sealed class RegexRuleEngineTests
     }
 
     private static RegexRuleEngine CreateEngine(BouncerOptions options) =>
-        new(OptionsFactory.Create(options));
+        new(OptionsFactory.Create(options), LoggerFactory.Create(builder => { }).CreateLogger<RegexRuleEngine>());
 }

@@ -59,7 +59,6 @@ public static class DefaultRuleGroups
         new RuleGroupDefinition(
             "powershell",
             [
-                ..CreatePowerShellRules("powershell"),
                 ..CreatePowerShellRules("pwsh")
             ]),
         new RuleGroupDefinition(

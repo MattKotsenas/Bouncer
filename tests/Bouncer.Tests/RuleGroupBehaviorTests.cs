@@ -2,6 +2,7 @@ using Bouncer.Models;
 using Bouncer.Options;
 using Bouncer.Rules;
 using FluentAssertions;
+using Microsoft.Extensions.Logging;
 using OptionsFactory = Microsoft.Extensions.Options.Options;
 
 namespace Bouncer.Tests;
@@ -66,6 +67,26 @@ public sealed class RuleGroupBehaviorTests
     }
 
     [TestMethod]
+    public void Bash_SafeCommand_DoesNotAllowNewline()
+    {
+        var engine = CreateEngine();
+
+        var match = engine.Evaluate(HookInput.Bash("ls\npwd"));
+
+        match.Should().BeNull();
+    }
+
+    [TestMethod]
+    public void Git_SafeCommand_DoesNotAllowNewline()
+    {
+        var engine = CreateEngine();
+
+        var match = engine.Evaluate(HookInput.Bash("git status\npwd"));
+
+        match.Should().BeNull();
+    }
+
+    [TestMethod]
     public void PowerShell_DeniesDestructiveRemove()
     {
         var engine = CreateEngine();
@@ -83,6 +104,43 @@ public sealed class RuleGroupBehaviorTests
     }
 
     [TestMethod]
+    public void PowerShell_SafeCommand_DoesNotAllowNewline()
+    {
+        var engine = CreateEngine();
+        var input = new HookInput
+        {
+            ToolName = "powershell",
+            ToolInput = ToolInput.ForCommand("Get-ChildItem\nGet-Process")
+        };
+
+        var match = engine.Evaluate(input);
+
+        match.Should().BeNull();
+    }
+
+    [TestMethod]
+    public void ProductionRisk_KubectlApplyWithDryRun_DoesNotMatch()
+    {
+        var engine = CreateEngine();
+
+        var match = engine.Evaluate(HookInput.Bash("kubectl apply -f prod.yaml --dry-run=client"));
+
+        match.Should().BeNull();
+    }
+
+    [TestMethod]
+    public void ProductionRisk_KubectlApplyWithDryRunInComment_Denies()
+    {
+        var engine = CreateEngine();
+
+        var match = engine.Evaluate(HookInput.Bash("kubectl apply -f prod.yaml # --dry-run=client"));
+
+        match.Should().NotBeNull();
+        match!.Decision.Should().Be(PermissionDecision.Deny);
+        match.GroupName.Should().Be("production-risk");
+    }
+
+    [TestMethod]
     public void Builtins_BlockBouncerConfigEdit()
     {
         var engine = CreateEngine();
@@ -95,5 +153,5 @@ public sealed class RuleGroupBehaviorTests
     }
 
     private static RegexRuleEngine CreateEngine() =>
-        new(OptionsFactory.Create(new BouncerOptions()));
+        new(OptionsFactory.Create(new BouncerOptions()), LoggerFactory.Create(builder => { }).CreateLogger<RegexRuleEngine>());
 }

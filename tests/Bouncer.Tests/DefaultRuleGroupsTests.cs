@@ -51,7 +51,7 @@ public sealed class DefaultRuleGroupsTests
 
         group.Rules.Should().AllSatisfy(rule =>
         {
-            rule.ToolName.Should().BeOneOf("powershell", "pwsh");
+            rule.ToolName.Should().Be("pwsh");
             rule.Field.Should().Be(ToolField.Command);
         });
     }

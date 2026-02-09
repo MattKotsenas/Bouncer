@@ -48,7 +48,8 @@ public static partial class DefaultRuleRegexes
     public const string KubectlDeleteProdPattern =
         @"\bkubectl\b\s+delete\b.*\b(--namespace|-n)\s*(prod|production)\b";
 
-    public const string KubectlApplyNoDryRunPattern = @"\bkubectl\b\s+apply\b(?!.*--dry-run)";
+    public const string KubectlApplyNoDryRunPattern =
+        @"\bkubectl\b\s+apply\b(?![^#\r\n]*\s--dry-run\b)";
 
     public const string PowerShellRemoveItemRootPattern =
         @"\bRemove-Item\b.*\s(-Recurse|-r)\b.*\s(-Force|-f)\b.*\s(""|')?" +
@@ -71,21 +72,21 @@ public static partial class DefaultRuleRegexes
     public const string PowerShellStopRestartPattern = @"\b(Stop-Computer|Restart-Computer)\b";
 
     public const string SafeShellInfoPattern =
-        @"^\s*(ls|pwd|whoami|uname|date|id|which|echo)\b[^;&|<>$`]*$";
+        @"^[ \t]*(ls|pwd|whoami|uname|date|id|which|echo)\b[^;&|<>$`\r\n]*$";
 
     public const string SafeGitReadonlyPattern =
-        @"^\s*git\s+(status|diff|log|branch|rev-parse|describe)\b[^;&|<>$`]*$";
+        @"^[ \t]*git\s+(status|diff|log|branch|rev-parse|describe)\b[^;&|<>$`\r\n]*$";
 
     public const string SafeReadPathPattern =
         @"(^|[\\/]).+\.(md|txt|cs|csproj|sln|slnx|props|targets|json|yml|yaml|toml|xml|ini|config|editorconfig|gitignore)$" +
         @"|(^|[\\/])(readme|license)(\.[a-z0-9]+)?$";
 
     public const string PowerShellSafeInfoPattern =
-        @"^\s*(Get-ChildItem|Get-Location|Get-Process|Get-Service|Get-Command|Get-Help|Get-Date|Get-Host|" +
-        @"Get-Item|Test-Path|Resolve-Path|Get-PSDrive|Get-PSVersionTable)\b[^;&|<>$`]*$";
+        @"^[ \t]*(Get-ChildItem|Get-Location|Get-Process|Get-Service|Get-Command|Get-Help|Get-Date|Get-Host|" +
+        @"Get-Item|Test-Path|Resolve-Path|Get-PSDrive|Get-PSVersionTable)\b[^;&|<>$`\r\n]*$";
 
     public const string PowerShellSafeReadPattern =
-        @"^\s*(Get-Content|Select-String)\b[^;&|<>$`]*(?:" + SafeReadPathPattern + @")[^;&|<>$`]*$";
+        @"^[ \t]*(Get-Content|Select-String)\b[^;&|<>$`\r\n]*(?:" + SafeReadPathPattern + @")[^;&|<>$`\r\n]*$";
 
     public const string SafeNonEmptyPattern = @"^.+$";
 

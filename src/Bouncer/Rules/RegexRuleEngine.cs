@@ -1,6 +1,7 @@
 using System.Text.RegularExpressions;
 using Bouncer.Models;
 using Bouncer.Options;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 namespace Bouncer.Rules;
@@ -8,17 +9,21 @@ namespace Bouncer.Rules;
 public sealed class RegexRuleEngine : IRuleEngine
 {
     private readonly IReadOnlyList<CompiledRule> _rules;
+    private readonly ILogger<RegexRuleEngine> _logger;
 
-    public RegexRuleEngine(IOptions<BouncerOptions> options)
+    public RegexRuleEngine(IOptions<BouncerOptions> options, ILogger<RegexRuleEngine> logger)
     {
+        _logger = logger;
         _rules = BuildRules(options.Value);
     }
 
     public RuleMatch? Evaluate(HookInput input)
     {
+        var inputToolName = CanonicalizeToolName(input.ToolName);
+
         foreach (var rule in _rules)
         {
-            if (!string.Equals(rule.Rule.ToolName, input.ToolName, StringComparison.OrdinalIgnoreCase))
+            if (!string.Equals(rule.CanonicalToolName, inputToolName, StringComparison.OrdinalIgnoreCase))
             {
                 continue;
             }
@@ -40,7 +45,7 @@ public sealed class RegexRuleEngine : IRuleEngine
         return null;
     }
 
-    private static IReadOnlyList<CompiledRule> BuildRules(BouncerOptions options)
+    private IReadOnlyList<CompiledRule> BuildRules(BouncerOptions options)
     {
         var rules = new List<CompiledRule>();
 
@@ -57,7 +62,7 @@ public sealed class RegexRuleEngine : IRuleEngine
 
             foreach (var rule in group.Rules)
             {
-                rules.Add(new CompiledRule(rule, group.Name, ParseAction(rule.Action), rule.Reason));
+                rules.Add(new CompiledRule(rule, group.Name, ParseAction(rule.Action), rule.Reason, CanonicalizeToolName(rule.ToolName)));
             }
         }
 
@@ -69,15 +74,25 @@ public sealed class RegexRuleEngine : IRuleEngine
                     ? $"Matched custom rule '{custom.Name}'"
                     : custom.Reason;
 
+                var field = ResolveField(custom.ToolMatch);
+                if (field == ToolField.Unknown)
+                {
+                    _logger.LogDebug(
+                        "Skipping custom rule {RuleName}; unknown tool match {ToolName}",
+                        custom.Name,
+                        custom.ToolMatch);
+                    continue;
+                }
+
                 var rule = new RuleDefinition(
                     custom.Name,
                     custom.ToolMatch,
-                    ResolveField(custom.ToolMatch),
+                    field,
                     custom.Pattern,
                     custom.Action,
                     reason);
 
-                rules.Add(new CompiledRule(rule, "custom", ParseAction(custom.Action), reason));
+                rules.Add(new CompiledRule(rule, "custom", ParseAction(custom.Action), reason, CanonicalizeToolName(rule.ToolName)));
             }
         }
 
@@ -91,9 +106,10 @@ public sealed class RegexRuleEngine : IRuleEngine
 
     internal static ToolField ResolveField(string toolName)
     {
-        return toolName.ToLowerInvariant() switch
+        return CanonicalizeToolName(toolName).ToLowerInvariant() switch
         {
             "bash" => ToolField.Command,
+            "pwsh" => ToolField.Command,
             "edit" => ToolField.Path,
             "write" => ToolField.Path,
             "read" => ToolField.Path,
@@ -101,9 +117,14 @@ public sealed class RegexRuleEngine : IRuleEngine
             "grep" => ToolField.Pattern,
             "webfetch" => ToolField.Url,
             "websearch" => ToolField.Query,
-            _ => ToolField.Command
+            _ => ToolField.Unknown
         };
     }
+
+    private static string CanonicalizeToolName(string toolName) =>
+        string.Equals(toolName, "powershell", StringComparison.OrdinalIgnoreCase)
+            ? "pwsh"
+            : toolName;
 
     private static string? GetFieldValue(HookInput input, ToolField field)
     {
@@ -123,7 +144,8 @@ public sealed class RegexRuleEngine : IRuleEngine
         RuleDefinition Rule,
         string GroupName,
         PermissionDecision Decision,
-        string Reason)
+        string Reason,
+        string CanonicalToolName)
     {
         public Regex Regex { get; } =
             Rule.RegexFactory?.Invoke()

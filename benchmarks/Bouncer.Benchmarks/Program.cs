@@ -39,8 +39,8 @@ public class Tier1PipelineBenchmarks
         options.LlmFallback.Enabled = false;
 
         var optionsWrapper = Options.Create(options);
-        var engine = new RegexRuleEngine(optionsWrapper);
         var loggerFactory = LoggerFactory.Create(builder => { });
+        var engine = new RegexRuleEngine(optionsWrapper, loggerFactory.CreateLogger<RegexRuleEngine>());
         _pipeline = new BouncerPipeline(
             engine,
             new NullLlmJudge(),

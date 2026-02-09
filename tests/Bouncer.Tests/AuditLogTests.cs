@@ -83,7 +83,7 @@ public sealed class AuditLogTests
     private static IBouncerPipeline CreatePipeline(BouncerOptions options, ILoggerFactory loggerFactory)
     {
         var optionsWrapper = OptionsFactory.Create(options);
-        var engine = new RegexRuleEngine(optionsWrapper);
+        var engine = new RegexRuleEngine(optionsWrapper, loggerFactory.CreateLogger<RegexRuleEngine>());
         return new BouncerPipeline(engine, new NullLlmJudge(), new HookAdapterFactory([new ClaudeHookAdapter()]), loggerFactory, optionsWrapper);
     }
 

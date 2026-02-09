@@ -9,7 +9,8 @@ public enum ToolField
     Content,
     Pattern,
     Query,
-    Url
+    Url,
+    Unknown
 }
 
 public sealed record RuleDefinition(
