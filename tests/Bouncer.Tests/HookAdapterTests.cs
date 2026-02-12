@@ -188,6 +188,65 @@ public sealed class HookAdapterTests
         input.ToolInput.Command.Should().BeNull();
     }
 
+    // ── Copilot adapter: apply_patch parsing ─────────────────
+
+    [TestMethod]
+    public void Copilot_ReadInput_ParsesApplyPatchUpdateFile()
+    {
+        var patchArgs = "*** Begin Patch\n*** Update File: C:\\Projects\\src\\Program.cs\n@@\n- old\n+ new\n";
+        var json = $$"""{"toolName":"apply_patch","toolArgs":{{JsonSerializer.Serialize(patchArgs)}},"cwd":"C:\\Projects"}""";
+        using var doc = JsonDocument.Parse(json);
+        var adapter = new CopilotHookAdapter();
+
+        var input = adapter.ReadInput(doc.RootElement);
+
+        input.Should().NotBeNull();
+        input!.ToolName.Should().Be("apply_patch");
+        input.ToolInput.Path.Should().Be(@"C:\Projects\src\Program.cs");
+    }
+
+    [TestMethod]
+    public void Copilot_ReadInput_ParsesApplyPatchAddFile()
+    {
+        var patchArgs = "*** Begin Patch\n*** Add File: C:\\Projects\\src\\NewFile.cs\n+ content\n";
+        var json = $$"""{"toolName":"apply_patch","toolArgs":{{JsonSerializer.Serialize(patchArgs)}},"cwd":"C:\\Projects"}""";
+        using var doc = JsonDocument.Parse(json);
+        var adapter = new CopilotHookAdapter();
+
+        var input = adapter.ReadInput(doc.RootElement);
+
+        input.Should().NotBeNull();
+        input!.ToolInput.Path.Should().Be(@"C:\Projects\src\NewFile.cs");
+    }
+
+    [TestMethod]
+    public void Copilot_ReadInput_ParsesApplyPatchDeleteFile()
+    {
+        var patchArgs = "*** Begin Patch\n*** Delete File: C:\\Projects\\old.txt\n";
+        var json = $$"""{"toolName":"apply_patch","toolArgs":{{JsonSerializer.Serialize(patchArgs)}},"cwd":"C:\\Projects"}""";
+        using var doc = JsonDocument.Parse(json);
+        var adapter = new CopilotHookAdapter();
+
+        var input = adapter.ReadInput(doc.RootElement);
+
+        input.Should().NotBeNull();
+        input!.ToolInput.Path.Should().Be(@"C:\Projects\old.txt");
+    }
+
+    [TestMethod]
+    public void Copilot_ReadInput_ApplyPatchWithNoFileHeader_ReturnsEmptyToolInput()
+    {
+        var patchArgs = "some random non-json non-patch text";
+        var json = $$"""{"toolName":"apply_patch","toolArgs":{{JsonSerializer.Serialize(patchArgs)}}}""";
+        using var doc = JsonDocument.Parse(json);
+        var adapter = new CopilotHookAdapter();
+
+        var input = adapter.ReadInput(doc.RootElement);
+
+        input.Should().NotBeNull();
+        input!.ToolInput.Path.Should().BeNull();
+    }
+
     // ── Copilot adapter: WriteOutput ──────────────────────────
 
     [TestMethod]

@@ -113,18 +113,24 @@ public sealed class RegexRuleEngine : IRuleEngine
             "edit" => ToolField.Path,
             "write" => ToolField.Path,
             "read" => ToolField.Path,
+            "view" => ToolField.Path,
             "glob" => ToolField.Pattern,
             "grep" => ToolField.Pattern,
-            "webfetch" => ToolField.Url,
-            "websearch" => ToolField.Query,
+            "web_fetch" => ToolField.Url,
+            "web_search" => ToolField.Query,
+            "report_intent" => ToolField.ToolName,
             _ => ToolField.Unknown
         };
     }
 
     private static string CanonicalizeToolName(string toolName) =>
-        string.Equals(toolName, "powershell", StringComparison.OrdinalIgnoreCase)
-            ? "pwsh"
-            : toolName;
+        toolName.ToLowerInvariant() switch
+        {
+            "powershell" => "pwsh",
+            "rg" => "grep",
+            "apply_patch" => "edit",
+            _ => toolName
+        };
 
     private static string? GetFieldValue(HookInput input, ToolField field)
     {
@@ -136,6 +142,7 @@ public sealed class RegexRuleEngine : IRuleEngine
             ToolField.Pattern => input.ToolInput.Pattern,
             ToolField.Query => input.ToolInput.Query,
             ToolField.Url => input.ToolInput.Url,
+            ToolField.ToolName => input.ToolName,
             _ => null
         };
     }

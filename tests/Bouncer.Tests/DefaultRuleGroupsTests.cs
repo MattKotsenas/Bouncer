@@ -73,7 +73,7 @@ public sealed class DefaultRuleGroupsTests
         var group = DefaultRuleGroups.All.Single(g => g.Name == "builtins");
 
         group.Rules
-            .Where(rule => rule.ToolName is "write" or "edit" or "read")
+            .Where(rule => rule.ToolName is "write" or "edit" or "read" or "view")
             .Should()
             .AllSatisfy(rule => rule.Field.Should().Be(ToolField.Path));
 
@@ -86,6 +86,11 @@ public sealed class DefaultRuleGroupsTests
             .Where(rule => rule.ToolName == "todo")
             .Should()
             .AllSatisfy(rule => rule.Field.Should().Be(ToolField.Command));
+
+        group.Rules
+            .Where(rule => rule.ToolName == "report_intent")
+            .Should()
+            .AllSatisfy(rule => rule.Field.Should().Be(ToolField.ToolName));
     }
 
     [TestMethod]
@@ -106,12 +111,12 @@ public sealed class DefaultRuleGroupsTests
         var group = DefaultRuleGroups.All.Single(g => g.Name == "web");
 
         group.Rules
-            .Where(rule => rule.ToolName == "webfetch")
+            .Where(rule => rule.ToolName == "web_fetch")
             .Should()
             .AllSatisfy(rule => rule.Field.Should().Be(ToolField.Url));
 
         group.Rules
-            .Where(rule => rule.ToolName == "websearch")
+            .Where(rule => rule.ToolName == "web_search")
             .Should()
             .AllSatisfy(rule => rule.Field.Should().Be(ToolField.Query));
     }

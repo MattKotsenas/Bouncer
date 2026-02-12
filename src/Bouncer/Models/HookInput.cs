@@ -119,14 +119,14 @@ public sealed class HookInput
 
     public static HookInput WebFetch(string url, string? cwd = null) => new()
     {
-        ToolName = "webfetch",
+        ToolName = "web_fetch",
         ToolInput = ToolInput.ForUrl(url),
         Cwd = cwd
     };
 
     public static HookInput WebSearch(string query, string? cwd = null) => new()
     {
-        ToolName = "websearch",
+        ToolName = "web_search",
         ToolInput = ToolInput.ForQuery(query),
         Cwd = cwd
     };

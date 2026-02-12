@@ -30,7 +30,14 @@ public sealed class CopilotHookAdapter : IHookAdapter
                 var toolArgsStr = toolArgsProp.GetString();
                 if (toolArgsStr is not null)
                 {
-                    toolInput = JsonSerializer.Deserialize(toolArgsStr, BouncerJsonContext.Default.ToolInput);
+                    try
+                    {
+                        toolInput = JsonSerializer.Deserialize(toolArgsStr, BouncerJsonContext.Default.ToolInput);
+                    }
+                    catch (JsonException)
+                    {
+                        toolInput = TryParsePatchInput(toolArgsStr);
+                    }
                 }
             }
             else if (toolArgsProp.ValueKind == JsonValueKind.Object)
@@ -65,4 +72,37 @@ public sealed class CopilotHookAdapter : IHookAdapter
 
     public int GetExitCode(EvaluationResult result) =>
         result.Decision == PermissionDecision.Deny ? 2 : 0;
+
+    internal static ToolInput? TryParsePatchInput(string text)
+    {
+        ReadOnlySpan<char> span = text;
+        ReadOnlySpan<char> newline = "\n";
+
+        ReadOnlySpan<string> prefixes =
+        [
+            "*** Update File: ",
+            "*** Add File: ",
+            "*** Delete File: ",
+            "*** Rename File: "
+        ];
+
+        foreach (var prefix in prefixes)
+        {
+            var idx = span.IndexOf(prefix, StringComparison.Ordinal);
+            if (idx < 0)
+                continue;
+
+            var pathStart = idx + prefix.Length;
+            var remaining = span[pathStart..];
+            var lineEnd = remaining.IndexOf(newline);
+            var path = lineEnd < 0
+                ? remaining.Trim()
+                : remaining[..lineEnd].Trim();
+
+            if (!path.IsEmpty)
+                return ToolInput.ForPath(path.ToString());
+        }
+
+        return null;
+    }
 }

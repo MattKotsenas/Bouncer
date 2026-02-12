@@ -10,6 +10,7 @@ public enum ToolField
     Pattern,
     Query,
     Url,
+    ToolName,
     Unknown
 }
 

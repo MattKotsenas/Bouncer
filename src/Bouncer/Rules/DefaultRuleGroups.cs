@@ -121,6 +121,14 @@ public static class DefaultRuleGroups
                     "Secret file access",
                     DefaultRuleRegexes.SecretPath),
                 new RuleDefinition(
+                    "secret-file-view",
+                    "view",
+                    ToolField.Path,
+                    DefaultRuleRegexes.SecretPathPattern,
+                    "deny",
+                    "Secret file access",
+                    DefaultRuleRegexes.SecretPath),
+                new RuleDefinition(
                     "safe-file-write",
                     "write",
                     ToolField.Path,
@@ -143,6 +151,14 @@ public static class DefaultRuleGroups
                     DefaultRuleRegexes.SafeReadPathPattern,
                     "allow",
                     "Known safe file read",
+                    DefaultRuleRegexes.SafeReadPath),
+                new RuleDefinition(
+                    "safe-file-view",
+                    "view",
+                    ToolField.Path,
+                    DefaultRuleRegexes.SafeReadPathPattern,
+                    "allow",
+                    "Known safe file view",
                     DefaultRuleRegexes.SafeReadPath),
                 new RuleDefinition(
                     "safe-glob",
@@ -171,10 +187,26 @@ public static class DefaultRuleGroups
                 new RuleDefinition(
                     "safe-report-intent",
                     "report_intent",
-                    ToolField.Command,
+                    ToolField.ToolName,
                     DefaultRuleRegexes.SafeNonEmptyPattern,
                     "allow",
                     "Known safe intent report",
+                    DefaultRuleRegexes.SafeNonEmpty),
+                new RuleDefinition(
+                    "safe-ask-user",
+                    "ask_user",
+                    ToolField.ToolName,
+                    DefaultRuleRegexes.SafeNonEmptyPattern,
+                    "allow",
+                    "Known safe user prompt",
+                    DefaultRuleRegexes.SafeNonEmpty),
+                new RuleDefinition(
+                    "safe-skill",
+                    "skill",
+                    ToolField.ToolName,
+                    DefaultRuleRegexes.SafeNonEmptyPattern,
+                    "allow",
+                    "Known safe skill invocation",
                     DefaultRuleRegexes.SafeNonEmpty)
             ]),
         new RuleGroupDefinition(
@@ -282,7 +314,7 @@ public static class DefaultRuleGroups
             [
                 new RuleDefinition(
                     "webfetch-paste",
-                    "webfetch",
+                    "web_fetch",
                     ToolField.Url,
                     DefaultRuleRegexes.WebFetchPastePattern,
                     "deny",
@@ -290,7 +322,7 @@ public static class DefaultRuleGroups
                     DefaultRuleRegexes.WebFetchPaste),
                 new RuleDefinition(
                     "safe-webfetch",
-                    "webfetch",
+                    "web_fetch",
                     ToolField.Url,
                     DefaultRuleRegexes.SafeWebFetchPattern,
                     "allow",
@@ -298,7 +330,7 @@ public static class DefaultRuleGroups
                     DefaultRuleRegexes.SafeWebFetch),
                 new RuleDefinition(
                     "safe-websearch",
-                    "websearch",
+                    "web_search",
                     ToolField.Query,
                     DefaultRuleRegexes.SafeNonEmptyPattern,
                     "allow",

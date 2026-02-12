@@ -85,12 +85,12 @@ public sealed class HookInputTests
 
         yield return new object[]
         {
-            new FactoryCase("webfetch", HookInput.WebFetch("https://example.com"), Url: "https://example.com")
+            new FactoryCase("web_fetch", HookInput.WebFetch("https://example.com"), Url: "https://example.com")
         };
 
         yield return new object[]
         {
-            new FactoryCase("websearch", HookInput.WebSearch("bouncer hooks"), Query: "bouncer hooks")
+            new FactoryCase("web_search", HookInput.WebSearch("bouncer hooks"), Query: "bouncer hooks")
         };
 
         var arguments = new Dictionary<string, JsonElement>

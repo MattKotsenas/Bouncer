@@ -33,6 +33,41 @@ public sealed class RuleGroupBehaviorTests
     }
 
     [TestMethod]
+    public void Builtins_AllowsReportIntent()
+    {
+        var engine = CreateEngine();
+        var input = new HookInput
+        {
+            ToolName = "report_intent",
+            ToolInput = new ToolInput()
+        };
+
+        var match = engine.Evaluate(input);
+
+        match.Should().NotBeNull();
+        match!.Decision.Should().Be(PermissionDecision.Allow);
+        match.GroupName.Should().Be("builtins");
+    }
+
+    [TestMethod]
+    public void Builtins_AllowsRipgrep()
+    {
+        var engine = CreateEngine();
+        var input = new HookInput
+        {
+            ToolName = "rg",
+            ToolInput = ToolInput.ForPathAndPattern("src", "TODO")
+        };
+
+        var match = engine.Evaluate(input);
+
+        match.Should().NotBeNull();
+        match!.Decision.Should().Be(PermissionDecision.Allow);
+        match.GroupName.Should().Be("builtins");
+        match.Rule.Name.Should().Be("safe-grep");
+    }
+
+    [TestMethod]
     public void DangerousGit_DeniesForceWithLease()
     {
         var engine = CreateEngine();
@@ -146,6 +181,23 @@ public sealed class RuleGroupBehaviorTests
         var engine = CreateEngine();
 
         var match = engine.Evaluate(HookInput.Edit(".bouncer/config.json", "{ }"));
+
+        match.Should().NotBeNull();
+        match!.Decision.Should().Be(PermissionDecision.Deny);
+        match.GroupName.Should().Be("builtins");
+    }
+
+    [TestMethod]
+    public void Builtins_DeniesApplyPatchToSecretFile()
+    {
+        var engine = CreateEngine();
+        var input = new HookInput
+        {
+            ToolName = "apply_patch",
+            ToolInput = ToolInput.ForPath("/home/user/.env")
+        };
+
+        var match = engine.Evaluate(input);
 
         match.Should().NotBeNull();
         match!.Decision.Should().Be(PermissionDecision.Deny);
