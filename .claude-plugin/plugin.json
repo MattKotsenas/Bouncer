@@ -1,6 +1,6 @@
 {
   "name": "bouncer",
-  "version": "1.0.12",
+  "version": "1.0.13",
   "description": "PreToolUse hook that blocks dangerous tool calls with fast rules and LLM fallback.",
   "author": {
     "name": "Bouncer"

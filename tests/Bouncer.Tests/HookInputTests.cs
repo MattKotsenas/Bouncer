@@ -136,4 +136,57 @@ public sealed class HookInputTests
         string? Query = null,
         string? Url = null,
         string? ArgumentKey = null);
+
+    [TestMethod]
+    public void ExtensionData_SurvivesRoundTrip()
+    {
+        // Simulate what happens when CopilotHookAdapter deserializes toolArgs with unknown keys
+        var toolInputJson = """{"request":{"plan_id":"fix-typos"},"description":"test"}""";
+        var toolInput = JsonSerializer.Deserialize(toolInputJson, BouncerJsonContext.Default.ToolInput);
+
+        toolInput.Should().NotBeNull();
+        toolInput!.ExtensionData.Should().ContainKey("request");
+        toolInput.ExtensionData.Should().ContainKey("description");
+
+        // Now serialize it back — this is what BuildPrompt and MaybeLog do
+        var reserialized = JsonSerializer.Serialize(toolInput, BouncerJsonContext.Default.ToolInput);
+
+        reserialized.Should().Contain("request");
+        reserialized.Should().Contain("fix-typos");
+        reserialized.Should().Contain("description");
+    }
+
+    [TestMethod]
+    public void ExtensionData_MixedKnownAndUnknown_BothSerialize()
+    {
+        // Tool like sql that has both a known property (query) and unknown ones (description)
+        var toolInputJson = """{"query":"UPDATE todos SET status = 'done'","description":"mark done"}""";
+        var toolInput = JsonSerializer.Deserialize(toolInputJson, BouncerJsonContext.Default.ToolInput);
+
+        toolInput.Should().NotBeNull();
+        toolInput!.Query.Should().Be("UPDATE todos SET status = 'done'");
+        toolInput.ExtensionData.Should().ContainKey("description");
+
+        var reserialized = JsonSerializer.Serialize(toolInput, BouncerJsonContext.Default.ToolInput);
+
+        reserialized.Should().Contain("query");
+        reserialized.Should().Contain("UPDATE todos");
+        reserialized.Should().Contain("description");
+        reserialized.Should().Contain("mark done");
+    }
+
+    [TestMethod]
+    public void ExtensionData_NoUnknownKeys_SerializesCleanly()
+    {
+        var toolInputJson = """{"command":"echo hi"}""";
+        var toolInput = JsonSerializer.Deserialize(toolInputJson, BouncerJsonContext.Default.ToolInput);
+
+        toolInput.Should().NotBeNull();
+        toolInput!.Command.Should().Be("echo hi");
+        toolInput.ExtensionData.Should().BeNull();
+
+        var reserialized = JsonSerializer.Serialize(toolInput, BouncerJsonContext.Default.ToolInput);
+
+        reserialized.Should().Be("""{"command":"echo hi"}""");
+    }
 }

@@ -26,6 +26,9 @@ public sealed class ToolInput
     [JsonPropertyName("arguments")]
     public Dictionary<string, JsonElement>? Arguments { get; init; }
 
+    [JsonExtensionData]
+    public Dictionary<string, JsonElement>? ExtensionData { get; set; }
+
     public static ToolInput ForCommand(string command) => new()
     {
         Command = command

@@ -162,6 +162,28 @@ public sealed class BouncerPipelineTests
         collector.GetSnapshot().Should().ContainSingle(r => r.Message.Contains("Failed to parse hook input"));
     }
 
+    [TestMethod]
+    public async Task RunAsync_UnknownToolArgs_AuditLogContainsExtensionData()
+    {
+        var options = new BouncerOptions { DefaultAction = "allow" };
+        var collector = new FakeLogCollector();
+        var factory = LoggerFactory.Create(b =>
+            b.SetMinimumLevel(LogLevel.Information).AddProvider(new FakeLoggerProvider(collector)));
+        var pipeline = CreatePipeline(options, loggerFactory: factory);
+
+        // Copilot CLI format with unknown tool args (the bug scenario)
+        var json = """{"toolName":"ledger_append","toolArgs":"{\"request\":{\"plan_id\":\"fix-typos\"}}","cwd":"/tmp"}""";
+        using var inputStream = new MemoryStream(Encoding.UTF8.GetBytes(json));
+        using var outputStream = new MemoryStream();
+
+        await pipeline.RunAsync(inputStream, outputStream);
+
+        var auditLog = collector.GetSnapshot()
+            .FirstOrDefault(r => r.Message.Contains("Audit") && r.Message.Contains("ledger_append"));
+        auditLog.Should().NotBeNull("audit log entry should be written for the tool call");
+        auditLog!.Message.Should().Contain("fix-typos", "extension data should be included in the audit log");
+    }
+
     private static IBouncerPipeline CreatePipeline(
         BouncerOptions options,
         ILlmJudge? llmJudge = null,

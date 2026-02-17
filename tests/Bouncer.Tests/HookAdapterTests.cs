@@ -100,6 +100,20 @@ public sealed class HookAdapterTests
     }
 
     [TestMethod]
+    public void Claude_ReadInput_PreservesUnknownToolInput()
+    {
+        var json = """{"tool_name":"ledger_append","tool_input":{"request":{"plan_id":"fix-typos"}},"cwd":"/tmp"}""";
+        using var doc = JsonDocument.Parse(json);
+        var adapter = new ClaudeHookAdapter();
+
+        var input = adapter.ReadInput(doc.RootElement);
+
+        input.Should().NotBeNull();
+        input!.ToolInput.ExtensionData.Should().ContainKey("request");
+        input.ToolInput.ExtensionData!["request"].GetProperty("plan_id").GetString().Should().Be("fix-typos");
+    }
+
+    [TestMethod]
     public void Claude_ReadInput_MissingToolName_ReturnsNull()
     {
         using var doc = JsonDocument.Parse("""{"tool_input":{"command":"echo"}}""");
@@ -162,6 +176,66 @@ public sealed class HookAdapterTests
         input.Should().NotBeNull();
         input!.ToolName.Should().Be("bash");
         input.ToolInput.Command.Should().Be("echo hi");
+    }
+
+    [TestMethod]
+    public void Copilot_ReadInput_PreservesUnknownToolArgs_StringFormat()
+    {
+        var json = """{"toolName":"ledger_append","toolArgs":"{\"request\":{\"plan_id\":\"fix-typos\"}}","cwd":"/tmp"}""";
+        using var doc = JsonDocument.Parse(json);
+        var adapter = new CopilotHookAdapter();
+
+        var input = adapter.ReadInput(doc.RootElement);
+
+        input.Should().NotBeNull();
+        input!.ToolName.Should().Be("ledger_append");
+        input.ToolInput.ExtensionData.Should().ContainKey("request");
+        input.ToolInput.ExtensionData!["request"].GetProperty("plan_id").GetString().Should().Be("fix-typos");
+    }
+
+    [TestMethod]
+    public void Copilot_ReadInput_PreservesUnknownToolArgs_ObjectFormat()
+    {
+        var json = """{"toolName":"task","toolArgs":{"prompt":"find files","agent_type":"explore"},"cwd":"/tmp"}""";
+        using var doc = JsonDocument.Parse(json);
+        var adapter = new CopilotHookAdapter();
+
+        var input = adapter.ReadInput(doc.RootElement);
+
+        input.Should().NotBeNull();
+        input!.ToolInput.ExtensionData.Should().ContainKey("prompt");
+        input.ToolInput.ExtensionData.Should().ContainKey("agent_type");
+        input.ToolInput.ExtensionData!["prompt"].GetString().Should().Be("find files");
+    }
+
+    [TestMethod]
+    public void Copilot_ReadInput_MixedKnownAndUnknownArgs_PreservesBoth()
+    {
+        var json = """{"toolName":"powershell","toolArgs":"{\"command\":\"dotnet build\",\"description\":\"Build project\",\"mode\":\"sync\"}","cwd":"/tmp"}""";
+        using var doc = JsonDocument.Parse(json);
+        var adapter = new CopilotHookAdapter();
+
+        var input = adapter.ReadInput(doc.RootElement);
+
+        input.Should().NotBeNull();
+        input!.ToolInput.Command.Should().Be("dotnet build");
+        input.ToolInput.ExtensionData.Should().ContainKey("description");
+        input.ToolInput.ExtensionData.Should().ContainKey("mode");
+        input.ToolInput.ExtensionData.Should().NotContainKey("command", "known properties should not appear in ExtensionData");
+    }
+
+    [TestMethod]
+    public void Copilot_ReadInput_StandardToolArgs_NoExtensionData()
+    {
+        var json = """{"toolName":"bash","toolArgs":"{\"command\":\"echo hi\"}","cwd":"/tmp"}""";
+        using var doc = JsonDocument.Parse(json);
+        var adapter = new CopilotHookAdapter();
+
+        var input = adapter.ReadInput(doc.RootElement);
+
+        input.Should().NotBeNull();
+        input!.ToolInput.Command.Should().Be("echo hi");
+        input.ToolInput.ExtensionData.Should().BeNull();
     }
 
     [TestMethod]
