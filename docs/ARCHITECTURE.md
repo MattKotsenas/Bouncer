@@ -28,7 +28,7 @@ The codebase is designed for AOT from day one (source-generated JSON, source-gen
 Because `dotnet tool install` respects the project-level `global.json`, Bouncer should be installed as a **global tool** (`dotnet tool install --global`) to avoid conflicts with projects that pin to an older SDK version.
 
 ## Two-tier decision engine
-Tier 1 is a source-generated-regex rule engine. It is deterministic and sub-millisecond. Tier 2 is an LLM-as-judge for ambiguous inputs.
+Tier 1 is a source-generated regex rule engine. It is deterministic and sub-millisecond. Tier 2 is an LLM-as-judge for ambiguous inputs.
 
 Tier 1 includes both deny rules and allow rules (known-safe commands). Allow rules keep routine calls from reaching Tier 2 and reduce LLM usage.
 
