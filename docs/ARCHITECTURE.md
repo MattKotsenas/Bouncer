@@ -16,7 +16,7 @@ Bouncer runs as a PreToolUse hook. That means it executes as a subprocess on eve
 | LLM fallback (Tier 2) | 500-2000ms | Only when ambiguous |
 
 ## Why Native AOT
-A normal .NET CLI tool often spends 150-300ms on startup (JIT, assembly loading). Native AOT compiles ahead of time, bringing cold start down to ~10-15ms. This is the single biggest performance win and the reason Bouncer is viable as a hook.
+A normal .NET CLI tool often spends 150-300ms on startup (JIT, assembly loading). Native AOT compiles ahead of time, bringing the cold start down to ~10-15ms. This is the single biggest performance win and the reason Bouncer is viable as a hook.
 
 Tradeoff: no runtime reflection. This is why Bouncer relies on source generators for JSON and configuration binding.
 
@@ -35,7 +35,7 @@ Tier 1 includes both deny rules and allow rules (known-safe commands). Allow rul
 We considered a bloom filter as a Tier 0 optimization. At the current rule set size (~50-100 patterns), a bloom filter saves <0.1ms. The complexity is not worth it today. If rule sets grow to thousands, revisit.
 
 ## Why DI in a 25ms process
-Dependency injection enables clean swapping of rule engines, judges, and loggers in tests. With AOT, container build cost is ~1-3ms. That tradeoff is worth the testability and composability.
+Dependency injection enables clean swapping of rule engines, judges, and loggers in tests. With AOT, the container build cost is ~1-3ms. That tradeoff is worth the testability and composability.
 
 Logging uses the standard `ILogger` pipeline with a JSON file logger. Logs are written to `~/.bouncer/logs/YYYY-MM-DD.log` by default (one file per day, all projects). Each audit entry includes a `Cwd` field for per-project filtering. The path is configurable via `Logging:File:Path`.
 

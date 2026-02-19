@@ -86,7 +86,7 @@ Key settings:
 - `customRules`: add project-specific patterns (each with its own allow/deny action).
 - `llmFallback`: enable LLM-as-judge and configure providers.
 - `Logging:File:Path`: file log output path (default: `~/.bouncer/logs/YYYY-MM-DD.log`).
-- `Logging:LogLevel`: standard `Microsoft.Extensions.Logging` section that controls categories (`Bouncer.Audit.Deny`, `Bouncer.Audit.Allow`).
+- `Logging:LogLevel`: the standard `Microsoft.Extensions.Logging` section that controls categories (`Bouncer.Audit.Deny`, `Bouncer.Audit.Allow`).
 
 Tier 1 includes allow rules for known-safe commands to keep routine calls out of the LLM fallback.
 
