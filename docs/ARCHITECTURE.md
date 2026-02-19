@@ -39,7 +39,7 @@ Dependency injection enables clean swapping of rule engines, judges, and loggers
 
 Logging uses the standard `ILogger` pipeline with a JSON file logger. Logs are written to `~/.bouncer/logs/YYYY-MM-DD.log` by default (one file per day, all projects). Each audit entry includes a `Cwd` field for per-project filtering. The path is configurable via `Logging:File:Path`.
 
-## User-level dotfiles
+## User-level dot files
 
 All configuration and logs live under `~/.bouncer/`:
 
